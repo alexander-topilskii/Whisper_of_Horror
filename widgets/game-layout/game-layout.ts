@@ -12,11 +12,17 @@ function ensureStyles() {
       color-scheme: dark;
     }
 
+    html {
+      width: 100%;
+    }
+
     body {
       margin: 0;
       font-family: "JetBrains Sans", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: radial-gradient(120% 120% at 50% 20%, rgba(16, 37, 32, 0.6) 0%, rgba(5, 10, 10, 1) 55%, rgba(0, 0, 0, 1) 100%);
       color: rgba(220, 235, 229, 0.92);
+      min-height: 100vh;
+      overflow-x: hidden;
     }
 
     .woh-game-layout {
@@ -708,6 +714,41 @@ function ensureStyles() {
 
       .woh-deck-status {
         justify-content: space-between;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .woh-header {
+        padding: 16px;
+      }
+
+      .woh-header-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+
+      .woh-main {
+        padding: 16px;
+        gap: 16px;
+      }
+
+      .woh-panel {
+        padding: 14px;
+      }
+
+      .woh-event-main {
+        padding: 16px;
+      }
+
+      .woh-event-deck {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .woh-log {
+        padding: 16px;
       }
     }
   `;
