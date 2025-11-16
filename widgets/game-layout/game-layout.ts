@@ -1685,64 +1685,10 @@ export class GameLayout {
 
     this.scenarioIntroTitle.textContent = 'Журнал сценария';
     this.scenarioIntroBody.innerHTML = '';
-    const introFragment = document.createDocumentFragment();
-    const hints = [
-      'Пролог и активные задания перенесены в журнал хода.',
-      'Прокрутите журнал вверх, чтобы перечитать сюжет или цели.',
-    ];
-    hints.forEach((hint) => {
-      const item = document.createElement('li');
-      item.textContent = hint;
-      introFragment.append(item);
-    });
-    this.scenarioIntroBody.append(introFragment);
 
-    this.scenarioTaskSummary.textContent = 'Актуальные цели доступны в журнале хода.';
-
-    this.renderScenarioCondition(
-      this.scenarioGoal,
-      'Условия победы',
-      'Следите за журналом, чтобы видеть текущее требование победы.',
-      undefined,
-    );
-    this.renderScenarioCondition(
-      this.scenarioFail,
-      'Условия поражения',
-      'Журнал хода сообщает, когда угроза достигает критического значения.',
-      undefined,
-    );
-  }
-
-  private renderScenarioCondition(
-    target: HTMLElement,
-    title: string,
-    description: string,
-    condition: GameState['scenario']['firstTask']['technicalGoal'] | undefined,
-  ): void {
-    target.innerHTML = '';
-    const heading = document.createElement('div');
-    heading.className = 'woh-scenario-condition-title';
-    heading.textContent = title;
-
-    const progress = document.createElement('div');
-    progress.className = 'woh-scenario-condition-progress';
-    const label = document.createElement('span');
-    label.textContent = condition?.label ?? '—';
-    const value = document.createElement('span');
-    if (condition) {
-      const current = condition.currentAmount ?? 0;
-      const required = condition.requiredAmount ?? 0;
-      value.textContent = `${current} / ${required}`;
-    } else {
-      value.textContent = '—';
-    }
-    progress.append(label, value);
-
-    const descriptionElement = document.createElement('p');
-    descriptionElement.className = 'woh-scenario-condition-description';
-    descriptionElement.textContent = description;
-
-    target.append(heading, progress, descriptionElement);
+    this.scenarioTaskSummary.textContent = '';
+    this.scenarioGoal.innerHTML = '';
+    this.scenarioFail.innerHTML = '';
   }
 
   private renderWorldTracks(tracks: GameState['worldTracks']): void {
