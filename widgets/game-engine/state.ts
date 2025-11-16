@@ -97,14 +97,21 @@ export interface EventChoiceEffect {
   statDeltas?: StatDelta[];
   actionsDelta?: number;
   cluesGained?: number;
+  noise?: number;
 }
 
 export interface EventChoiceState {
   id: string;
   label: string;
-  result: string;
+  result?: string;
   resolved?: boolean;
   effects?: EventChoiceEffect;
+  chance?: number;
+  successText?: string;
+  failText?: string;
+  successEffects?: EventChoiceEffect;
+  failEffects?: EventChoiceEffect;
+  outcome?: "success" | "fail";
 }
 
 export interface EventCardState {

@@ -70,6 +70,14 @@ const defaultEventChoiceEffectHandlers: EventChoiceEffectHandlerMap = {
 
     pushLogEntry(state, "[Улика]", `Получено улик: ${clues}.`);
   },
+  noise: (state, value) => {
+    if (!value) {
+      return;
+    }
+
+    adjustTrack(state, "doom", value);
+    pushLogEntry(state, "[Тревога]", `Шум привлекает внимание. Уровень ужаса растёт на ${value}.`);
+  },
 };
 
 export function applyEventChoiceEffects(

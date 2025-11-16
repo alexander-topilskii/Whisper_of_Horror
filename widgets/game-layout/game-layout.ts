@@ -1762,11 +1762,21 @@ export class GameLayout {
       const button = document.createElement('button');
       button.className = 'woh-choice-button';
       button.type = 'button';
-      button.textContent = choice.label;
+      const labelParts = [choice.label];
+      if (choice.outcome) {
+        labelParts.push(choice.outcome === 'success' ? 'успех' : 'провал');
+      }
+      button.textContent = labelParts.join(' · ');
       button.dataset.command = 'resolve-choice';
       button.dataset.choiceId = choice.id;
       button.disabled = Boolean(choice.resolved);
       button.setAttribute('aria-pressed', choice.resolved ? 'true' : 'false');
+      if (typeof choice.chance === 'number') {
+        const chancePercent = Math.round(Math.max(0, Math.min(1, choice.chance)) * 100);
+        this.applyTooltip(button, `Шанс успеха: ${chancePercent}%`);
+      } else {
+        this.applyTooltip(button, undefined);
+      }
       fragment.append(button);
     });
 
