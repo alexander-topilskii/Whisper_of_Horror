@@ -108,6 +108,37 @@ export interface LogEntry {
   body: string;
 }
 
+export interface ScenarioIntroState {
+  title: string;
+  type: string;
+  flavor: string[];
+}
+
+export interface ScenarioTaskConditionState {
+  label: string;
+  resource: string;
+  requiredAmount: number;
+  currentAmount?: number;
+}
+
+export interface ScenarioTaskState {
+  id: string;
+  label: string;
+  summary: string;
+  goal: string;
+  technicalGoal: ScenarioTaskConditionState;
+  flavor: string;
+  failCondition: string;
+  technicalFailCondition: ScenarioTaskConditionState;
+}
+
+export interface ScenarioState {
+  actId: string;
+  title: string;
+  intro: ScenarioIntroState;
+  firstTask: ScenarioTaskState;
+}
+
 export interface GameState {
   turn: TurnState;
   decks: DeckCollectionState;
@@ -122,6 +153,7 @@ export interface GameState {
   statuses: StatusEffect[];
   npcs: NpcDefinition[];
   event: EventCardState;
+  scenario: ScenarioState;
   log: LogEntry[];
   autoScrollLog: boolean;
   soundEnabled: boolean;

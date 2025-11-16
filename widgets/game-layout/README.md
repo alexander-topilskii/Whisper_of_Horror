@@ -38,6 +38,17 @@ GameLayout
 - Hover/фокус активируют CSS-тултип с подробностями (карты, эффекты, NPC).
 - Карточки руки, эффекты и NPC используют класс `woh-tooltip` для вывода всплывающих описаний.
 - Метод `renderLog` отвечает за колонку журнала: он генерирует элементы, сбрасывает пустое состояние и управляет автоскроллом.
+- Блок сценария рендерится методом `renderScenario`: сначала показывается интро (`scenario.intro`), затем карточка акта (`scenario.firstTask`) и автоматически синхронизированные условия победы/поражения.
+- Прогресс треков (`worldTracks`) теперь формируется из JSON-целей: `technicalGoal` → трек «victory», `technicalFailCondition` → трек «doom».
+
+## Scenario JSON contract
+- Файл `src/data/scenario.json` экспортирует объект `{ "scenario": ScenarioState }`, который автоматически попадает в `GameState`.
+- `scenario.intro` — заголовок и массив фраз, отображаемых в блоке вступления.
+- `scenario.firstTask` описывает активный акт:
+  - `summary` и `goal`/`failCondition` — текстовые описания.
+  - `technicalGoal` (`label`, `resource`, `requiredAmount`, `currentAmount`) определяет целевой ресурс победы и количество делений трека.
+  - `technicalFailCondition` с теми же полями задаёт трек ужаса/поражения.
+- UI использует `firstTask.label` как заголовок панели и синхронизирует отображение прогресса (`currentAmount / requiredAmount`) как внутри карточки акта, так и на треках победы/ужаса.
 
 ## API (Props / Inputs / Outputs)
 | Name | Type | Default | Description |

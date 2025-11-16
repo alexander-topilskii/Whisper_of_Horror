@@ -217,6 +217,76 @@ function ensureStyles() {
       margin-bottom: 0;
     }
 
+    .woh-scenario {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .woh-scenario-intro,
+    .woh-scenario-task {
+      border-radius: 12px;
+      padding: 12px;
+      background: var(--woh-panel-surface-deep);
+      border: 1px solid var(--woh-panel-border);
+    }
+
+    .woh-scenario-task {
+      background: var(--woh-panel-surface);
+      border-style: dashed;
+    }
+
+    .woh-scenario-intro-title {
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: ${colors.subpanelTitle};
+      margin-bottom: 6px;
+    }
+
+    .woh-scenario-intro-list {
+      margin: 0;
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.78rem;
+      color: ${colors.bodyText};
+    }
+
+    .woh-scenario-task-summary {
+      margin: 0;
+      font-size: 0.85rem;
+      color: ${colors.bodyText};
+    }
+
+    .woh-scenario-conditions {
+      display: grid;
+      gap: 10px;
+    }
+
+    .woh-scenario-condition-title {
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: ${colors.subpanelTitle};
+    }
+
+    .woh-scenario-condition-progress {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: ${colors.trackLabel};
+      margin-top: 4px;
+    }
+
+    .woh-scenario-condition-description {
+      margin: 4px 0 0;
+      font-size: 0.8rem;
+      color: ${colors.bodyText};
+    }
+
     .woh-turn-resources {
       display: flex;
       justify-content: space-between;
@@ -913,6 +983,11 @@ function ensureStyles() {
         padding: 14px;
       }
 
+      .woh-scenario-intro,
+      .woh-scenario-task {
+        padding: 10px;
+      }
+
       .woh-event-main {
         padding: 16px;
       }
@@ -1245,7 +1320,7 @@ const TEMPLATE = `
       <section class="woh-column woh-column--center">
         <article class="woh-panel">
           <div class="woh-panel-header">
-            <h2 class="woh-panel-title">Треки Кампании</h2>
+            <h2 class="woh-panel-title" data-role="scenario-title"></h2>
             <div class="woh-phase woh-phase--compact">
               <div class="woh-phase-icon" aria-hidden="true" data-role="phase-icon"></div>
               <div class="woh-phase-labels">
@@ -1253,6 +1328,19 @@ const TEMPLATE = `
                 <span class="woh-phase-subtitle" data-role="phase-subtitle"></span>
               </div>
             </div>
+          </div>
+          <div class="woh-scenario">
+            <section class="woh-scenario-intro" aria-live="polite">
+              <div class="woh-scenario-intro-title" data-role="scenario-intro-title"></div>
+              <ul class="woh-scenario-intro-list" data-role="scenario-intro-body"></ul>
+            </section>
+            <section class="woh-scenario-task">
+              <p class="woh-scenario-task-summary" data-role="scenario-task-summary"></p>
+              <div class="woh-scenario-conditions">
+                <div class="woh-scenario-condition" data-role="scenario-goal"></div>
+                <div class="woh-scenario-condition" data-role="scenario-fail"></div>
+              </div>
+            </section>
           </div>
           <div class="woh-world-tracks" data-role="world-tracks"></div>
         </article>
@@ -1299,6 +1387,12 @@ export class GameLayout {
   private readonly statusEffects: HTMLElement;
   private readonly npcList: HTMLElement;
   private readonly worldTracks: HTMLElement;
+  private readonly scenarioTitle: HTMLElement;
+  private readonly scenarioIntroTitle: HTMLElement;
+  private readonly scenarioIntroBody: HTMLElement;
+  private readonly scenarioTaskSummary: HTMLElement;
+  private readonly scenarioGoal: HTMLElement;
+  private readonly scenarioFail: HTMLElement;
   private readonly characterStats: HTMLElement;
   private readonly eventPanel: HTMLElement;
   private readonly eventTitle: HTMLElement;
@@ -1382,6 +1476,12 @@ export class GameLayout {
     this.statusEffects = this.requireElement('[data-role="status-effects"]');
     this.npcList = this.requireElement('[data-role="npc-list"]');
     this.worldTracks = this.requireElement('[data-role="world-tracks"]');
+    this.scenarioTitle = this.requireElement('[data-role="scenario-title"]');
+    this.scenarioIntroTitle = this.requireElement('[data-role="scenario-intro-title"]');
+    this.scenarioIntroBody = this.requireElement('[data-role="scenario-intro-body"]');
+    this.scenarioTaskSummary = this.requireElement('[data-role="scenario-task-summary"]');
+    this.scenarioGoal = this.requireElement('[data-role="scenario-goal"]');
+    this.scenarioFail = this.requireElement('[data-role="scenario-fail"]');
     this.characterStats = this.requireElement('[data-role="character-stats"]');
     this.eventPanel = this.requireElement('[data-panel="event"]');
     this.eventTitle = this.requireElement('[data-role="event-title"]');
@@ -1417,6 +1517,7 @@ export class GameLayout {
     this.renderPhase(state.phase);
     this.renderStatuses(state.statuses);
     this.renderNpcs(state.npcs);
+    this.renderScenario(state.scenario);
     this.renderWorldTracks(state.worldTracks);
     this.renderCharacterStats(state.characterStats);
     this.renderEvent(state.event, state.decks.event);
@@ -1579,6 +1680,72 @@ export class GameLayout {
     this.npcList.append(fragment);
   }
 
+  private renderScenario(scenario: GameState['scenario']): void {
+    const panelTitle = scenario?.firstTask?.label ?? scenario?.title ?? 'Сценарий';
+    this.scenarioTitle.textContent = panelTitle;
+
+    const introTitle = scenario?.intro?.title ?? 'Пролог';
+    this.scenarioIntroTitle.textContent = introTitle;
+    this.scenarioIntroBody.innerHTML = '';
+    const introLines = scenario?.intro?.flavor ?? [];
+    const introFragment = document.createDocumentFragment();
+    if (introLines.length) {
+      introLines.forEach((line) => {
+        const item = document.createElement('li');
+        item.textContent = line;
+        introFragment.append(item);
+      });
+    } else {
+      const placeholder = document.createElement('li');
+      placeholder.textContent = 'Нет введения для этого акта.';
+      introFragment.append(placeholder);
+    }
+    this.scenarioIntroBody.append(introFragment);
+
+    this.scenarioTaskSummary.textContent = scenario?.firstTask?.summary ?? '';
+
+    this.renderScenarioCondition(
+      this.scenarioGoal,
+      'Условия победы',
+      scenario?.firstTask?.goal ?? '',
+      scenario?.firstTask?.technicalGoal,
+    );
+    this.renderScenarioCondition(
+      this.scenarioFail,
+      'Условия поражения',
+      scenario?.firstTask?.failCondition ?? '',
+      scenario?.firstTask?.technicalFailCondition,
+    );
+  }
+
+  private renderScenarioCondition(
+    target: HTMLElement,
+    title: string,
+    description: string,
+    condition: GameState['scenario']['firstTask']['technicalGoal'] | undefined,
+  ): void {
+    target.innerHTML = '';
+    const heading = document.createElement('div');
+    heading.className = 'woh-scenario-condition-title';
+    heading.textContent = title;
+
+    const progress = document.createElement('div');
+    progress.className = 'woh-scenario-condition-progress';
+    const label = document.createElement('span');
+    label.textContent = condition?.label ?? '—';
+    const value = document.createElement('span');
+    const current = condition?.currentAmount ?? 0;
+    const required = condition?.requiredAmount ?? 0;
+    value.textContent = `${current} / ${required}`;
+    progress.append(label, value);
+
+    const descriptionElement = document.createElement('p');
+    descriptionElement.className = 'woh-scenario-condition-description';
+    descriptionElement.textContent = description;
+
+    target.append(heading, progress, descriptionElement);
+  }
+
   private renderWorldTracks(tracks: GameState['worldTracks']): void {
     this.worldTracks.innerHTML = '';
     const fragment = document.createDocumentFragment();
@@ -1600,7 +1767,8 @@ export class GameLayout {
 
       const progress = document.createElement('div');
       progress.className = 'woh-track-progress';
-      const progressWidth = Math.max(0, Math.min(100, (track.value / track.max) * 100));
+      const ratio = track.max > 0 ? track.value / track.max : 0;
+      const progressWidth = Math.max(0, Math.min(100, ratio * 100));
       progress.style.width = `${progressWidth}%`;
       bar.append(progress);
 
