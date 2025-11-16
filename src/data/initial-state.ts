@@ -51,9 +51,24 @@ function createShuffledDeck<T>(cards: T[] | undefined): T[] {
   return deck;
 }
 
+const STARTING_HAND_SIZE = 3;
 const playerDeckData = handCards.playerDeck ?? { hand: [], drawPile: [], discardPile: [] };
-initialState.hand = playerDeckData.hand ?? [];
-initialState.decks.player.drawPile = createShuffledDeck(playerDeckData.drawPile);
+const predefinedHand = playerDeckData.hand ?? [];
+const startingHand = predefinedHand.slice(0, STARTING_HAND_SIZE);
+const overflowHand = predefinedHand.slice(STARTING_HAND_SIZE);
+const combinedDrawPile = [...overflowHand, ...(playerDeckData.drawPile ?? [])];
+const shuffledDrawPile = createShuffledDeck(combinedDrawPile);
+
+while (startingHand.length < STARTING_HAND_SIZE && shuffledDrawPile.length) {
+  const nextCard = shuffledDrawPile.shift();
+  if (!nextCard) {
+    break;
+  }
+  startingHand.push(nextCard);
+}
+
+initialState.hand = startingHand;
+initialState.decks.player.drawPile = shuffledDrawPile;
 initialState.decks.player.discardPile = playerDeckData.discardPile ?? [];
 initialState.decks.player.draw = initialState.decks.player.drawPile.length;
 initialState.decks.player.discard = initialState.decks.player.discardPile.length;
