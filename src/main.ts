@@ -1,5 +1,5 @@
 import initialState from "./data/initial-state";
-import { GameEngine } from "../widgets/game-engine/game-engine";
+import { GameEngine } from "../widgets/game-engine/engine";
 import { GameLayout } from "../widgets/game-layout/game-layout";
 
 const root = document.getElementById("app");

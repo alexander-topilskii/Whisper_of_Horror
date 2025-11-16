@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { applyEventChoiceEffects } from "./event-choice-effects";
-import type { EventChoiceEffect, GameState } from "../game-engine";
+import type { CharacterStatState, EventChoiceEffect, GameState, TrackState } from "../state";
 
 function createState(): GameState {
   return {
@@ -40,9 +40,9 @@ describe("applyEventChoiceEffects", () => {
     });
 
     expect(logType).toBe("[Событие]");
-    expect(state.characterStats.find((stat) => stat.id === "will")?.value).toBe(3);
-    expect(state.worldTracks.find((track) => track.id === "doom")?.value).toBe(4);
-    expect(state.worldTracks.find((track) => track.id === "victory")?.value).toBe(4);
+    expect(state.characterStats.find((stat: CharacterStatState) => stat.id === "will")?.value).toBe(3);
+    expect(state.worldTracks.find((track: TrackState) => track.id === "doom")?.value).toBe(4);
+    expect(state.worldTracks.find((track: TrackState) => track.id === "victory")?.value).toBe(4);
     expect(state.turn.actions.remaining).toBe(2);
     expect(state.log).toHaveLength(1);
     expect(state.log[0]).toMatchObject({ type: "[Улика]", body: "Получено улик: 2." });
