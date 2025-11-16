@@ -68,7 +68,7 @@ GameLayout
 
 ## Integration Example
 ```ts
-import initialState from "../../src/data/initial-state.json";
+import initialState from "../../src/data/initial-state";
 import { GameEngine, PlayCardCommand } from "../game-engine/game-engine";
 import { GameLayout } from "../game-layout/game-layout";
 

@@ -1,0 +1,56 @@
+{
+  "characterStats": [
+    {
+      "id": "health",
+      "label": "Здоровье",
+      "value": 5,
+      "max": 8,
+      "criticalThreshold": 2
+    },
+    {
+      "id": "sanity",
+      "label": "Рассудок",
+      "value": 3,
+      "max": 7,
+      "criticalThreshold": 2
+    },
+    {
+      "id": "focus",
+      "label": "Сосредоточенность",
+      "value": 4,
+      "max": 6
+    },
+    {
+      "id": "intuition",
+      "label": "Интуиция",
+      "value": 6,
+      "max": 8
+    }
+  ],
+  "statuses": [
+    {
+      "id": "watched",
+      "name": "Наблюдают",
+      "description": "Снижает успехи проверки наблюдательности на 1.",
+      "tone": "negative"
+    },
+    {
+      "id": "wounded",
+      "name": "Ранен",
+      "description": "Получите 1 дополнительный урон при следующей атаке.",
+      "tone": "negative"
+    },
+    {
+      "id": "protected",
+      "name": "Под защитой",
+      "description": "Вы можете игнорировать один эффект страха в ход.",
+      "tone": "positive"
+    },
+    {
+      "id": "panic",
+      "name": "Паника",
+      "description": "Если вы тянете карту ужасов, получите 1 рассудок.",
+      "tone": "negative"
+    }
+  ]
+}
