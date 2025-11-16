@@ -1,12 +1,12 @@
+import { GameEngine } from "../game-engine/engine";
+import type { GameState } from "../game-engine/state";
 import {
   AppendLogEntryCommand,
-  GameEngine,
   PlayCardCommand,
   ResolveEventChoiceCommand,
   StartNewGameCommand,
   ToggleSoundCommand,
-} from "../game-engine/game-engine";
-import type { GameState } from "../game-engine/game-engine";
+} from "../game-engine/commands";
 import palette from "../../src/data/color-palette.json";
 
 const STYLE_TOKEN = "woh-game-layout-styles";

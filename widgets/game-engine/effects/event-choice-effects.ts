@@ -1,4 +1,5 @@
-import type { EventChoiceEffect, GameState, LogEntry, StatDelta } from "../game-engine";
+import type { EventChoiceEffect, GameState, StatDelta } from "../state";
+import { clamp, pushLogEntry } from "../state";
 
 type EventChoiceEffectHandler<TKey extends keyof EventChoiceEffect> = (
   state: GameState,
@@ -9,26 +10,6 @@ type EventChoiceEffectHandler<TKey extends keyof EventChoiceEffect> = (
 export type EventChoiceEffectHandlerMap = Partial<{
   [K in keyof EventChoiceEffect]: EventChoiceEffectHandler<K>;
 }>;
-
-const LOG_LIMIT = 20;
-
-function generateLogId(): string {
-  return `log-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
-}
-
-export function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
-}
-
-export function pushLogEntry(state: GameState, type: string, body: string) {
-  const entry: LogEntry = {
-    id: generateLogId(),
-    type,
-    body,
-  };
-
-  state.log = [entry, ...state.log].slice(0, LOG_LIMIT);
-}
 
 export function applyStatDeltas(state: GameState, deltas: StatDelta[] | undefined) {
   if (!deltas?.length) {
