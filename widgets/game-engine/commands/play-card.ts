@@ -1,19 +1,55 @@
 import type { GameCommand, GameState } from "../state";
 import { pushLogEntry } from "../state";
-import { adjustActions, applyEventChoiceEffects, adjustTrack } from "../effects/event-choice-effects";
+import {
+  adjustActions,
+  applyEventChoiceEffects,
+  adjustTrack,
+  applyStatDeltas,
+} from "../effects/event-choice-effects";
 import { syncPlayerDeckCounters } from "../effects/turn-cycle";
 import type { CardDefinition } from "../state";
 
 type UseCounterKey = "successCount" | "failCount";
 
-const CARD_TYPE_EFFECTS: Record<string, (state: GameState, card: CardDefinition) => string | null> = {
-  Исследование: (state, card) => {
-    if (!card.effect) {
-      return null;
-    }
+type CardBehavior = {
+  onSuccess?: (state: GameState, card: CardDefinition) => string | null;
+  onFailure?: (state: GameState, card: CardDefinition) => string | null;
+};
 
-    adjustTrack(state, "victory", card.effect);
-    return "[Улика]";
+function adjustStat(state: GameState, statId: string, delta: number): void {
+  applyStatDeltas(state, [{ statId, delta }]);
+}
+
+const CARD_BEHAVIORS: Record<string, CardBehavior> = {
+  Исследование: {
+    onSuccess: (state, card) => {
+      if (!card.effect) {
+        return null;
+      }
+
+      adjustTrack(state, "victory", card.effect);
+      return "[Улика]";
+    },
+  },
+  Лечение: {
+    onSuccess: (state, card) => {
+      adjustStat(state, "health", card.effect ?? 1);
+      return "[Здоровье]";
+    },
+    onFailure: (state) => {
+      adjustStat(state, "sanity", -1);
+      return "[Рассудок]";
+    },
+  },
+  Терапия: {
+    onSuccess: (state, card) => {
+      adjustStat(state, "sanity", card.effect ?? 1);
+      return "[Рассудок]";
+    },
+    onFailure: (state) => {
+      adjustStat(state, "health", -1);
+      return "[Здоровье]";
+    },
   },
 };
 
@@ -52,15 +88,20 @@ export class PlayCardCommand implements GameCommand {
     const isSuccess = this.rollForCard(card);
     let logType: string = isSuccess ? "[Действие]" : "[Провал]";
 
+    const behavior = card.type ? CARD_BEHAVIORS[card.type] : undefined;
     if (isSuccess) {
-      const typeHandler = card.type ? CARD_TYPE_EFFECTS[card.type] : undefined;
-      const typeLog = typeHandler?.(state, card) ?? null;
+      const typeLog = behavior?.onSuccess?.(state, card) ?? null;
       if (typeLog) {
         logType = typeLog;
       }
 
       if (card.effects) {
         logType = applyEventChoiceEffects(state, card.effects);
+      }
+    } else if (behavior?.onFailure) {
+      const failureLog = behavior.onFailure(state, card);
+      if (failureLog) {
+        logType = failureLog;
       }
     }
 
