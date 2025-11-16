@@ -7,6 +7,7 @@ import {
   ToggleSoundCommand,
 } from "../game-engine/game-engine";
 import type { GameState } from "../game-engine/game-engine";
+import { LogOverlayWidget } from "../log-overlay/log-overlay";
 import palette from "../../src/data/color-palette.json";
 
 const STYLE_TOKEN = "woh-game-layout-styles";
@@ -190,6 +191,19 @@ function ensureStyles() {
       text-transform: uppercase;
       margin-bottom: 12px;
       color: ${colors.panelTitle};
+    }
+
+    .woh-panel-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .woh-panel-header .woh-panel-title {
+      margin-bottom: 0;
     }
 
     .woh-turn-resources {
@@ -512,6 +526,11 @@ function ensureStyles() {
       box-shadow: inset 0 0 0 1px ${colors.phaseInnerShadow};
     }
 
+    .woh-phase--compact {
+      padding: 10px 12px;
+      gap: 12px;
+    }
+
     .woh-phase-icon {
       width: 42px;
       height: 42px;
@@ -522,11 +541,21 @@ function ensureStyles() {
       background: ${colors.phaseIconBackground};
     }
 
+    .woh-phase--compact .woh-phase-icon {
+      width: 36px;
+      height: 36px;
+      font-size: 1rem;
+    }
+
     .woh-phase-labels {
       display: flex;
       flex-direction: column;
       text-align: right;
       gap: 4px;
+    }
+
+    .woh-panel-header .woh-phase-labels {
+      text-align: right;
     }
 
     .woh-phase-title {
@@ -779,9 +808,6 @@ function ensureStyles() {
         order: 3;
       }
 
-      .woh-log {
-        max-height: none;
-      }
     }
 
     @media (max-width: 720px) {
@@ -1162,18 +1188,17 @@ const TEMPLATE = `
       </section>
       <section class="woh-column woh-column--center">
         <article class="woh-panel">
-          <h2 class="woh-panel-title">Треки Кампании</h2>
-          <div class="woh-world-tracks" data-role="world-tracks"></div>
-        </article>
-        <article class="woh-panel">
-          <h2 class="woh-panel-title">Фаза Мира</h2>
-          <div class="woh-phase">
-            <div class="woh-phase-icon" aria-hidden="true" data-role="phase-icon"></div>
-            <div class="woh-phase-labels">
-              <span class="woh-phase-title" data-role="phase-title"></span>
-              <span class="woh-phase-subtitle" data-role="phase-subtitle"></span>
+          <div class="woh-panel-header">
+            <h2 class="woh-panel-title">Треки Кампании</h2>
+            <div class="woh-phase woh-phase--compact">
+              <div class="woh-phase-icon" aria-hidden="true" data-role="phase-icon"></div>
+              <div class="woh-phase-labels">
+                <span class="woh-phase-title" data-role="phase-title"></span>
+                <span class="woh-phase-subtitle" data-role="phase-subtitle"></span>
+              </div>
             </div>
           </div>
+          <div class="woh-world-tracks" data-role="world-tracks"></div>
         </article>
         <article class="woh-panel">
           <h2 class="woh-panel-title">Активные NPC</h2>
@@ -1201,13 +1226,6 @@ const TEMPLATE = `
         </article>
       </section>
     </div>
-    <footer class="woh-log">
-      <div class="woh-log-header">
-        <span>Журнал Хода</span>
-        <span data-role="log-autoscroll"></span>
-      </div>
-      <div class="woh-log-entries" aria-live="polite" data-role="log-entries"></div>
-    </footer>
   </div>
 `;
 
@@ -1232,12 +1250,10 @@ export class GameLayout {
   private readonly eventEffect: HTMLElement;
   private readonly eventChoices: HTMLElement;
   private readonly eventDeck: HTMLElement;
-  private readonly logAutoscroll: HTMLElement;
-  private readonly logEntries: HTMLElement;
   private readonly soundToggle: HTMLButtonElement;
   private readonly newGameButton: HTMLButtonElement;
   private readonly settingsButton: HTMLButtonElement;
-  private lastRenderedLogSize = 0;
+  private readonly logOverlay: LogOverlayWidget;
 
   private readonly handleRootCommand = (event: MouseEvent) => {
     if (!this.engine) {
@@ -1316,11 +1332,10 @@ export class GameLayout {
     this.eventEffect = this.requireElement('[data-role="event-effect"]');
     this.eventChoices = this.requireElement('[data-role="event-choices"]');
     this.eventDeck = this.requireElement('[data-role="event-deck"]');
-    this.logAutoscroll = this.requireElement('[data-role="log-autoscroll"]');
-    this.logEntries = this.requireElement('[data-role="log-entries"]');
     this.soundToggle = this.requireElement<HTMLButtonElement>('[data-action="toggle-sound"]');
     this.newGameButton = this.requireElement<HTMLButtonElement>('[data-action="new-game"]');
     this.settingsButton = this.requireElement<HTMLButtonElement>('[data-action="settings"]');
+    this.logOverlay = new LogOverlayWidget();
 
     this.enableTooltipToggles();
     this.enableTooltipPositioning();
@@ -1348,7 +1363,7 @@ export class GameLayout {
     this.renderWorldTracks(state.worldTracks);
     this.renderCharacterStats(state.characterStats);
     this.renderEvent(state.event, state.decks.event);
-    this.renderLog(state.log, state.autoScrollLog);
+    this.logOverlay.render(state.log, state.autoScrollLog);
     this.updateSoundToggle(state.soundEnabled);
   }
 
@@ -1619,34 +1634,6 @@ export class GameLayout {
     next.textContent = `Следующее: ${deck.next ?? 'скрыто'}`;
 
     this.eventDeck.append(draw, discard, next);
-  }
-
-  private renderLog(log: GameState['log'], autoScroll: boolean): void {
-    this.logEntries.innerHTML = '';
-    const fragment = document.createDocumentFragment();
-
-    log.forEach((entry) => {
-      const item = document.createElement('div');
-      item.className = 'woh-log-entry';
-
-      const type = document.createElement('span');
-      type.className = 'woh-log-entry-type';
-      type.textContent = entry.type;
-
-      const body = document.createElement('span');
-      body.className = 'woh-log-entry-body';
-      body.textContent = entry.body;
-
-      item.append(type, body);
-      fragment.append(item);
-    });
-
-    this.logEntries.append(fragment);
-    if (autoScroll && log.length !== this.lastRenderedLogSize) {
-      this.logEntries.scrollTo({ top: 0, behavior: this.lastRenderedLogSize ? 'smooth' : 'auto' });
-    }
-    this.lastRenderedLogSize = log.length;
-    this.logAutoscroll.textContent = autoScroll ? 'Автопрокрутка: Вкл.' : 'Автопрокрутка: Выкл.';
   }
 
   private updateSoundToggle(enabled: boolean): void {
