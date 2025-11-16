@@ -60,7 +60,8 @@ GameEngine
 ## Integration Example
 ```ts
 import initialState from "../../src/data/initial-state";
-import { GameEngine, PlayCardCommand } from "./game-engine";
+import { GameEngine } from "./engine";
+import { PlayCardCommand } from "./commands";
 
 const engine = new GameEngine(initialState);
 const unsubscribe = engine.subscribe((state) => render(state));
