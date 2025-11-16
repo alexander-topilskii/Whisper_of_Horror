@@ -59,7 +59,7 @@ GameEngine
 
 ## Integration Example
 ```ts
-import initialState from "../../src/data/initial-state.json";
+import initialState from "../../src/data/initial-state";
 import { GameEngine, PlayCardCommand } from "./game-engine";
 
 const engine = new GameEngine(initialState);
