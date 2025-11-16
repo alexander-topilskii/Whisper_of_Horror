@@ -6,6 +6,7 @@ import scenario from "./scenario.json";
 import worldSettings from "./world-settings.json";
 import type { GameState, JournalScriptEntry } from "../../widgets/game-engine/state";
 import { pushLogEntry } from "../../widgets/game-engine/state";
+import { normalizeEventDeck, type RawEventCard } from "./normalize-event-cards";
 
 const placeholderEvent: GameState["event"] = {
   id: "no-event",
@@ -57,7 +58,8 @@ initialState.decks.player.discardPile = playerDeckData.discardPile ?? [];
 initialState.decks.player.draw = initialState.decks.player.drawPile.length;
 initialState.decks.player.discard = initialState.decks.player.discardPile.length;
 
-const eventDeckData = eventCard.eventDeck ?? [];
+const rawEventDeck: RawEventCard[] = (eventCard.eventDeck as RawEventCard[] | undefined) ?? [];
+const eventDeckData = normalizeEventDeck(rawEventDeck);
 initialState.decks.event.drawPile = createShuffledDeck(eventDeckData);
 initialState.decks.event.discardPile = [];
 initialState.decks.event.draw = eventDeckData.length;
