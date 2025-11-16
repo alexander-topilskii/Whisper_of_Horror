@@ -67,6 +67,19 @@ describe("applyEventChoiceEffects", () => {
     expect(state.log[0]).toMatchObject({ type: "[Улика]", body: "Получено улик: 2." });
   });
 
+  it("escalates doom and logs alarm when noise is applied", () => {
+    const state = createState();
+    const logType = applyEventChoiceEffects(state, { noise: 2 });
+
+    expect(logType).toBe("[Событие]");
+    expect(state.worldTracks.find((track: TrackState) => track.id === "doom")?.value).toBe(4);
+    expect(state.log).toHaveLength(1);
+    expect(state.log[0]).toMatchObject({
+      type: "[Тревога]",
+      body: "Шум привлекает внимание. Уровень ужаса растёт на 2.",
+    });
+  });
+
   it("allows overriding handlers via the handler map", () => {
     const state = createState();
     const effects: EventChoiceEffect = { cluesGained: 3 };

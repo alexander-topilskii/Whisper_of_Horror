@@ -33,8 +33,26 @@ export class ResolveEventChoiceCommand implements GameCommand {
 
     choice.resolved = true;
 
-    const logType = applyEventChoiceEffects(state, choice.effects);
-    pushLogEntry(state, logType, choice.result);
+    if (typeof choice.chance === "number") {
+      const chance = Math.max(0, Math.min(1, choice.chance));
+      const roll = Math.random();
+      const success = roll < chance;
+      choice.outcome = success ? "success" : "fail";
+
+      const effects = success
+        ? choice.successEffects ?? choice.effects
+        : choice.failEffects ?? choice.effects;
+      const fallbackResult = choice.result ?? (success ? "Испытание завершается успехом." : "Испытание провалено.");
+      const narrative = success
+        ? choice.successText ?? fallbackResult
+        : choice.failText ?? fallbackResult;
+      const logType = applyEventChoiceEffects(state, effects);
+      const chanceSuffix = ` Шанс ${Math.round(chance * 100)}%, результат: ${success ? "успех" : "провал"}.`;
+      pushLogEntry(state, logType, `${narrative}${chanceSuffix}`.trim());
+    } else {
+      const logType = applyEventChoiceEffects(state, choice.effects);
+      pushLogEntry(state, logType, choice.result ?? "Эффект завершён.");
+    }
 
     const unresolved = choices.some((item) => !item.resolved);
     state.eventResolutionPending = unresolved;
