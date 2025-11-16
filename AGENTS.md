@@ -7,3 +7,4 @@
 - Describe your changes in `CHANGELOG.md`. By adding date time and description at the first line. Use pattern: "[date time][FIX/ADD FEATURE/CHANGE] Description"
 - For each widget add description widgets/widget-name/README.md: follow rule describet at [WIDGET_README_RULE.MD](./WIDGET_README_RULE.MD)
 - Route new gameplay interactions through the `GameEngine` widget so that UI components stay thin and the engine owns state transitions.
+- Store all color values (hex, rgb/rgba, gradients, etc.) inside `src/data/color-palette.json` and import them instead of hardcoding literals in code.

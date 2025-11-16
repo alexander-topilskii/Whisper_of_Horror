@@ -7,8 +7,10 @@ import {
   ToggleSoundCommand,
 } from "../game-engine/game-engine";
 import type { GameState } from "../game-engine/game-engine";
+import palette from "../../src/data/color-palette.json";
 
 const STYLE_TOKEN = "woh-game-layout-styles";
+const colors = palette.gameLayout;
 
 function ensureStyles() {
   if (document.head.querySelector(`style[data-token="${STYLE_TOKEN}"]`)) {
@@ -20,6 +22,12 @@ function ensureStyles() {
   style.textContent = `
     :root {
       color-scheme: dark;
+      --woh-panel-surface: ${colors.panelSurface};
+      --woh-panel-surface-alt: ${colors.panelSurfaceAlt};
+      --woh-panel-surface-deep: ${colors.panelSurfaceDeep};
+      --woh-panel-border: ${colors.panelBorder};
+      --woh-panel-border-strong: ${colors.panelBorderStrong};
+      --woh-panel-highlight: ${colors.panelHighlight};
     }
 
     html {
@@ -29,8 +37,8 @@ function ensureStyles() {
     body {
       margin: 0;
       font-family: "JetBrains Sans", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(120% 120% at 50% 20%, rgba(16, 37, 32, 0.6) 0%, rgba(5, 10, 10, 1) 55%, rgba(0, 0, 0, 1) 100%);
-      color: rgba(220, 235, 229, 0.92);
+      background: ${colors.bodyBackground};
+      color: ${colors.bodyText};
       min-height: 100vh;
       overflow-x: hidden;
     }
@@ -39,7 +47,7 @@ function ensureStyles() {
       display: grid;
       grid-template-rows: auto 1fr auto;
       min-height: 100vh;
-      background: rgba(5, 12, 11, 0.82);
+      background: ${colors.layoutBackground};
       backdrop-filter: blur(4px);
     }
 
@@ -48,8 +56,8 @@ function ensureStyles() {
       align-items: center;
       justify-content: space-between;
       padding: 12px 32px;
-      border-bottom: 1px solid rgba(102, 152, 141, 0.2);
-      background: linear-gradient(90deg, rgba(8, 24, 20, 0.85) 0%, rgba(8, 17, 21, 0.85) 100%);
+      border-bottom: 1px solid ${colors.headerBorder};
+      background: ${colors.headerBackground};
     }
 
     .woh-logo-mark {
@@ -60,15 +68,15 @@ function ensureStyles() {
       letter-spacing: 0.18em;
       text-transform: uppercase;
       font-size: 0.82rem;
-      color: rgba(168, 226, 214, 0.9);
+      color: ${colors.logoText};
     }
 
     .woh-logo-icon {
       width: 32px;
       height: 32px;
       border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, rgba(102, 182, 163, 0.45), rgba(8, 32, 23, 0.9));
-      border: 1px solid rgba(102, 182, 163, 0.35);
+      background: ${colors.logoIconBackground};
+      border: 1px solid ${colors.logoIconBorder};
       display: grid;
       place-items: center;
       font-size: 0.65rem;
@@ -84,9 +92,9 @@ function ensureStyles() {
     .woh-button {
       position: relative;
       appearance: none;
-      border: 1px solid rgba(123, 181, 166, 0.45);
-      background: rgba(14, 38, 33, 0.8);
-      color: rgba(209, 234, 226, 0.9);
+      border: 1px solid ${colors.buttonBorder};
+      background: ${colors.buttonBackground};
+      color: ${colors.buttonText};
       padding: 8px 16px;
       border-radius: 999px;
       font-size: 0.78rem;
@@ -98,8 +106,8 @@ function ensureStyles() {
 
     .woh-button:hover,
     .woh-button:focus-visible {
-      border-color: rgba(128, 214, 197, 0.8);
-      box-shadow: 0 0 12px rgba(102, 182, 163, 0.45);
+      border-color: ${colors.buttonBorderHover};
+      box-shadow: 0 0 12px ${colors.buttonShadowHover};
       outline: none;
     }
 
@@ -131,20 +139,20 @@ function ensureStyles() {
     }
 
     .woh-panel {
-      background: linear-gradient(180deg, rgba(8, 22, 19, 0.85) 0%, rgba(6, 14, 12, 0.9) 100%);
-      border: 1px solid rgba(102, 152, 141, 0.18);
+      background: linear-gradient(180deg, var(--woh-panel-surface) 0%, ${colors.panelGradientEnd} 100%);
+      border: 1px solid var(--woh-panel-border);
       border-radius: 16px;
       padding: 16px;
-      box-shadow: inset 0 0 0 1px rgba(12, 38, 32, 0.2);
+      box-shadow: inset 0 0 0 1px ${colors.panelInsetShadow};
     }
 
     .woh-panel--glass {
       position: relative;
-      background: rgba(16, 16, 24, 0.85);
-      border: 1px solid rgba(230, 237, 255, 0.18);
+      background: linear-gradient(145deg, var(--woh-panel-surface-alt), ${colors.panelGlassBackgroundEnd});
+      border: 1px solid var(--woh-panel-border-strong);
       box-shadow:
-        0 18px 45px rgba(1, 4, 15, 0.55),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        0 18px 45px ${colors.panelGlassDropShadow},
+        inset 0 0 0 1px ${colors.panelGlassInnerHighlight};
       overflow: hidden;
       isolation: isolate;
     }
@@ -153,10 +161,7 @@ function ensureStyles() {
       content: "";
       position: absolute;
       inset: 0;
-      background: var(
-        --woh-panel-accent,
-        linear-gradient(135deg, rgba(41, 121, 255, 0.35), rgba(144, 202, 249, 0.05))
-      );
+      background: var(--woh-panel-accent, ${colors.panelAccentDefault});
       pointer-events: none;
       z-index: 0;
     }
@@ -167,15 +172,15 @@ function ensureStyles() {
     }
 
     .woh-panel--hand {
-      --woh-panel-accent: linear-gradient(135deg, rgba(41, 121, 255, 0.6), rgba(144, 202, 249, 0.05));
+      --woh-panel-accent: ${colors.panelAccentHand};
     }
 
     .woh-panel--events {
-      --woh-panel-accent: linear-gradient(135deg, rgba(41, 121, 255, 0.4), rgba(144, 202, 249, 0.05));
+      --woh-panel-accent: ${colors.panelAccentEvents};
     }
 
     .woh-panel--events[data-event-tone='defeat'] {
-      --woh-panel-accent: linear-gradient(135deg, rgba(239, 68, 68, 0.55), rgba(248, 113, 113, 0.05));
+      --woh-panel-accent: ${colors.panelAccentDefeat};
     }
 
     .woh-panel-title {
@@ -184,7 +189,7 @@ function ensureStyles() {
       letter-spacing: 0.08em;
       text-transform: uppercase;
       margin-bottom: 12px;
-      color: rgba(183, 222, 216, 0.82);
+      color: ${colors.panelTitle};
     }
 
     .woh-turn-resources {
@@ -209,20 +214,21 @@ function ensureStyles() {
       width: 14px;
       height: 14px;
       border-radius: 50%;
-      border: 1px solid rgba(120, 176, 156, 0.5);
-      background: rgba(23, 52, 42, 0.5);
-      transition: background 0.2s ease;
+      border: 1px solid ${colors.actionDotBorder};
+      background: ${colors.actionDotBackground};
+      transition: background 0.2s ease, border-color 0.2s ease;
     }
 
     .woh-action-dot.is-active {
-      background: radial-gradient(circle at 50% 40%, rgba(150, 222, 199, 0.95), rgba(63, 121, 105, 0.7));
+      border-color: ${colors.actionDotActiveBorder};
+      background: ${colors.actionDotActiveBackground};
     }
 
     .woh-actions-label {
       font-size: 0.76rem;
       text-transform: uppercase;
       letter-spacing: 0.12em;
-      color: rgba(181, 217, 209, 0.7);
+      color: ${colors.actionsLabel};
     }
 
     .woh-deck-status {
@@ -231,7 +237,7 @@ function ensureStyles() {
       font-size: 0.72rem;
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: rgba(159, 193, 186, 0.65);
+      color: ${colors.deckStatus};
     }
 
     .woh-deck-indicator {
@@ -244,10 +250,10 @@ function ensureStyles() {
       width: 24px;
       height: 24px;
       border-radius: 6px;
-      border: 1px solid rgba(128, 188, 176, 0.35);
+      border: 1px solid ${colors.deckIconBorder};
       display: grid;
       place-items: center;
-      background: rgba(12, 32, 27, 0.7);
+      background: ${colors.deckIconBackground};
       font-size: 0.65rem;
     }
 
@@ -264,23 +270,25 @@ function ensureStyles() {
     .woh-hand-card {
       position: relative;
       flex: 0 0 140px;
-      background: linear-gradient(180deg, rgba(22, 48, 41, 0.95) 0%, rgba(8, 18, 16, 0.95) 100%);
-      border: 1px solid rgba(135, 195, 180, 0.28);
+      background: ${colors.handCardBackground};
+      border: 1px solid ${colors.handCardBorder};
       border-radius: 12px;
       padding: 12px;
       display: flex;
       flex-direction: column;
       gap: 8px;
       cursor: pointer;
-      transition: transform 0.2s ease, border-color 0.2s ease;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
       scroll-snap-align: start;
+      box-shadow: 0 12px 24px ${colors.handCardShadow};
     }
 
     .woh-hand-card:hover,
     .woh-hand-card:focus-visible,
     .woh-hand-card[data-expanded="true"] {
       transform: translateY(-4px) scale(1.02);
-      border-color: rgba(168, 226, 214, 0.75);
+      border-color: ${colors.handCardHoverBorder};
+      box-shadow: 0 14px 32px ${colors.handCardHoverShadow};
       outline: none;
     }
 
@@ -297,14 +305,14 @@ function ensureStyles() {
     .woh-card-description {
       font-size: 0.75rem;
       line-height: 1.3;
-      color: rgba(189, 215, 209, 0.75);
+      color: ${colors.cardDescription};
     }
 
     .woh-card-costs {
       display: flex;
       gap: 6px;
       font-size: 0.7rem;
-      color: rgba(168, 206, 198, 0.6);
+      color: ${colors.cardCosts};
       letter-spacing: 0.05em;
       text-transform: uppercase;
     }
@@ -319,8 +327,8 @@ function ensureStyles() {
       left: 50%;
       transform: translateX(calc(-50% + var(--tooltip-shift, 0px))) scale(var(--tooltip-scale, 0.9));
       transform-origin: bottom center;
-      background: rgba(10, 26, 23, 0.95);
-      border: 1px solid rgba(104, 175, 160, 0.45);
+      background: ${colors.tooltipBackground};
+      border: 1px solid ${colors.tooltipBorder};
       border-radius: 10px;
       padding: 12px;
       max-width: 240px;
@@ -362,14 +370,14 @@ function ensureStyles() {
       font-size: 0.78rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: rgba(177, 217, 211, 0.75);
+      color: ${colors.trackLabel};
     }
 
     .woh-track-bar {
       position: relative;
       height: 14px;
       border-radius: 999px;
-      background: rgba(24, 46, 40, 0.65);
+      background: ${colors.trackBarBackground};
       overflow: hidden;
     }
 
@@ -383,14 +391,14 @@ function ensureStyles() {
 
     .woh-track--victory .woh-track-progress {
       width: 58%;
-      background: linear-gradient(90deg, rgba(62, 152, 135, 0.7) 0%, rgba(150, 222, 199, 0.95) 100%);
-      box-shadow: 0 0 12px rgba(150, 222, 199, 0.35);
+      background: ${colors.trackVictoryGradient};
+      box-shadow: 0 0 12px ${colors.trackVictoryShadow};
     }
 
     .woh-track--doom .woh-track-progress {
       width: 36%;
-      background: linear-gradient(90deg, rgba(120, 42, 42, 0.6) 0%, rgba(182, 94, 78, 0.9) 100%);
-      box-shadow: 0 0 16px rgba(140, 51, 48, 0.45);
+      background: ${colors.trackDoomGradient};
+      box-shadow: 0 0 16px ${colors.trackDoomShadow};
     }
 
     .woh-track-marks {
@@ -406,12 +414,12 @@ function ensureStyles() {
       width: 4px;
       height: 6px;
       border-radius: 1px;
-      background: rgba(173, 217, 209, 0.4);
+      background: ${colors.trackMark};
     }
 
     .woh-track-mark.is-critical {
       height: 12px;
-      background: rgba(255, 172, 120, 0.6);
+      background: ${colors.trackMarkCritical};
     }
 
     .woh-character-stats {
@@ -423,7 +431,7 @@ function ensureStyles() {
     .woh-panel-section {
       margin-top: 20px;
       padding-top: 16px;
-      border-top: 1px solid rgba(102, 152, 141, 0.18);
+      border-top: 1px solid ${colors.panelSectionBorder};
     }
 
     .woh-subpanel-title {
@@ -432,12 +440,12 @@ function ensureStyles() {
       letter-spacing: 0.08em;
       text-transform: uppercase;
       margin-bottom: 10px;
-      color: rgba(177, 217, 211, 0.78);
+      color: ${colors.subpanelTitle};
     }
 
     .woh-stat-card {
-      background: rgba(16, 34, 30, 0.6);
-      border: 1px solid rgba(118, 166, 152, 0.32);
+      background: ${colors.statCardBackground};
+      border: 1px solid ${colors.statCardBorder};
       border-radius: 12px;
       padding: 12px;
       display: flex;
@@ -453,7 +461,7 @@ function ensureStyles() {
       inset: -20% -30% auto auto;
       width: 120px;
       height: 120px;
-      background: radial-gradient(circle, rgba(145, 210, 195, 0.35), rgba(32, 70, 59, 0));
+      background: ${colors.statCardAura};
       transform: translate(40%, -40%);
       pointer-events: none;
     }
@@ -462,7 +470,7 @@ function ensureStyles() {
       font-size: 0.78rem;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: rgba(181, 223, 214, 0.75);
+      color: ${colors.statTitle};
     }
 
     .woh-stat-value {
@@ -475,21 +483,21 @@ function ensureStyles() {
 
     .woh-stat-value span {
       font-size: 0.7rem;
-      color: rgba(186, 222, 214, 0.55);
+      color: ${colors.statValueLabel};
       letter-spacing: 0.08em;
     }
 
     .woh-stat-card.is-critical {
       animation: woh-pulse 1.6s infinite;
-      border-color: rgba(214, 120, 104, 0.6);
+      border-color: ${colors.statCriticalBorder};
     }
 
     @keyframes woh-pulse {
       0%, 100% {
-        box-shadow: 0 0 0 0 rgba(214, 120, 104, 0.2);
+        box-shadow: 0 0 0 0 ${colors.statCriticalPulseOuter};
       }
       50% {
-        box-shadow: 0 0 12px 6px rgba(214, 120, 104, 0.15);
+        box-shadow: 0 0 12px 6px ${colors.statCriticalPulseInner};
       }
     }
 
@@ -499,8 +507,9 @@ function ensureStyles() {
       justify-content: space-between;
       padding: 12px 16px;
       border-radius: 12px;
-      background: rgba(12, 30, 29, 0.65);
-      border: 1px solid rgba(94, 148, 137, 0.28);
+      background: ${colors.phaseBackground};
+      border: 1px solid ${colors.phaseBorder};
+      box-shadow: inset 0 0 0 1px ${colors.phaseInnerShadow};
     }
 
     .woh-phase-icon {
@@ -510,7 +519,7 @@ function ensureStyles() {
       display: grid;
       place-items: center;
       font-size: 1.2rem;
-      background: radial-gradient(circle at 40% 30%, rgba(238, 212, 132, 0.85), rgba(112, 84, 41, 0.5));
+      background: ${colors.phaseIconBackground};
     }
 
     .woh-phase-labels {
@@ -524,12 +533,12 @@ function ensureStyles() {
       font-size: 0.75rem;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: rgba(190, 226, 214, 0.75);
+      color: ${colors.phaseTitle};
     }
 
     .woh-phase-subtitle {
       font-size: 0.68rem;
-      color: rgba(183, 210, 203, 0.6);
+      color: ${colors.phaseSubtitle};
     }
 
     .woh-effects {
@@ -542,12 +551,12 @@ function ensureStyles() {
       position: relative;
       padding: 8px 12px;
       border-radius: 999px;
-      background: rgba(26, 60, 54, 0.7);
-      border: 1px solid rgba(104, 175, 160, 0.42);
+      background: ${colors.effectChipBackground};
+      border: 1px solid ${colors.effectChipBorder};
       font-size: 0.68rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: rgba(192, 227, 219, 0.8);
+      color: ${colors.effectChipText};
       cursor: pointer;
     }
 
@@ -563,8 +572,8 @@ function ensureStyles() {
 
     .woh-npc-card {
       flex: 0 0 160px;
-      background: linear-gradient(180deg, rgba(16, 38, 35, 0.95) 0%, rgba(8, 16, 15, 0.95) 100%);
-      border: 1px solid rgba(102, 156, 148, 0.32);
+      background: ${colors.npcCardBackground};
+      border: 1px solid ${colors.npcCardBorder};
       border-radius: 14px;
       padding: 14px;
       display: flex;
@@ -583,8 +592,8 @@ function ensureStyles() {
       width: 42px;
       height: 42px;
       border-radius: 12px;
-      background: radial-gradient(circle, rgba(84, 116, 112, 0.4), rgba(24, 52, 46, 0.95));
-      border: 1px solid rgba(102, 156, 148, 0.4);
+      background: ${colors.npcAvatarBackground};
+      border: 1px solid ${colors.npcAvatarBorder};
       display: grid;
       place-items: center;
       font-size: 0.8rem;
@@ -599,13 +608,13 @@ function ensureStyles() {
     .woh-npc-timer {
       font-family: "JetBrains Mono", monospace;
       font-size: 0.68rem;
-      color: rgba(183, 215, 208, 0.6);
+      color: ${colors.npcTimer};
     }
 
     .woh-npc-body {
       font-size: 0.72rem;
       line-height: 1.4;
-      color: rgba(178, 206, 200, 0.65);
+      color: ${colors.npcBody};
     }
 
     .woh-event-card {
@@ -616,11 +625,11 @@ function ensureStyles() {
 
     .woh-event-main {
       position: relative;
-      background: linear-gradient(180deg, rgba(30, 44, 51, 0.92) 0%, rgba(12, 22, 27, 0.95) 100%);
-      border: 1px solid rgba(120, 172, 182, 0.32);
+      background: ${colors.eventCardBackground};
+      border: 1px solid ${colors.eventCardBorder};
       border-radius: 18px;
       padding: 20px;
-      box-shadow: inset 0 0 0 1px rgba(28, 54, 60, 0.3);
+      box-shadow: inset 0 0 0 1px ${colors.eventCardInset};
     }
 
     .woh-event-title {
@@ -634,18 +643,18 @@ function ensureStyles() {
     .woh-event-flavor {
       font-size: 0.82rem;
       line-height: 1.5;
-      color: rgba(201, 219, 217, 0.75);
+      color: ${colors.eventFlavor};
       font-style: italic;
     }
 
     .woh-event-effect {
       margin-top: 14px;
       padding-top: 14px;
-      border-top: 1px dashed rgba(134, 187, 196, 0.35);
+      border-top: 1px dashed ${colors.eventEffectBorder};
       font-size: 0.78rem;
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      color: rgba(180, 222, 224, 0.82);
+      color: ${colors.eventEffectText};
     }
 
     .woh-event-choices {
@@ -657,21 +666,21 @@ function ensureStyles() {
 
     .woh-choice-button {
       border-radius: 12px;
-      background: rgba(22, 38, 44, 0.8);
-      border: 1px solid rgba(122, 178, 190, 0.4);
+      background: ${colors.choiceBackground};
+      border: 1px solid ${colors.choiceBorder};
       padding: 10px 14px;
       text-align: left;
       font-size: 0.78rem;
       letter-spacing: 0.06em;
-      color: rgba(186, 222, 224, 0.85);
+      color: ${colors.choiceText};
       cursor: pointer;
       transition: border-color 0.2s ease, background 0.2s ease;
     }
 
     .woh-choice-button:hover,
     .woh-choice-button:focus-visible {
-      border-color: rgba(160, 214, 224, 0.8);
-      background: rgba(42, 62, 69, 0.85);
+      border-color: ${colors.choiceHoverBorder};
+      background: ${colors.choiceHoverBackground};
       outline: none;
     }
 
@@ -682,17 +691,18 @@ function ensureStyles() {
       gap: 16px;
       padding: 12px 16px;
       border-radius: 14px;
-      background: rgba(18, 34, 40, 0.6);
-      border: 1px solid rgba(118, 168, 176, 0.28);
+      background: ${colors.eventDeckBackground};
+      border: 1px solid ${colors.eventDeckBorder};
       font-size: 0.72rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: rgba(166, 206, 210, 0.7);
+      color: ${colors.eventDeckText};
+      box-shadow: inset 0 0 0 1px ${colors.eventDeckInset};
     }
 
     .woh-log {
-      border-top: 1px solid rgba(96, 140, 130, 0.18);
-      background: rgba(8, 18, 16, 0.92);
+      border-top: 1px solid ${colors.logBorder};
+      background: ${colors.logBackground};
       padding: 16px 32px 24px;
       display: flex;
       flex-direction: column;
@@ -707,7 +717,7 @@ function ensureStyles() {
       font-size: 0.75rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: rgba(180, 222, 214, 0.75);
+      color: ${colors.logHeaderText};
     }
 
     .woh-log-entries {
@@ -717,7 +727,7 @@ function ensureStyles() {
       padding-right: 8px;
       font-size: 0.78rem;
       line-height: 1.4;
-      color: rgba(184, 210, 203, 0.78);
+      color: ${colors.logEntriesText};
     }
 
     .woh-log-entry {
@@ -725,15 +735,16 @@ function ensureStyles() {
       gap: 6px;
       padding: 10px 14px;
       border-radius: 12px;
-      background: rgba(18, 36, 32, 0.6);
-      border: 1px solid rgba(94, 146, 134, 0.22);
+      background: ${colors.logEntryBackground};
+      border: 1px solid ${colors.logEntryBorder};
+      box-shadow: inset 0 0 0 1px ${colors.logEntryInset};
     }
 
     .woh-log-entry-type {
       font-size: 0.68rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: rgba(160, 198, 189, 0.6);
+      color: ${colors.logEntryTypeText};
     }
 
     .woh-log-entry-body {
