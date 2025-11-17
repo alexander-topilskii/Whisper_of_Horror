@@ -73,6 +73,7 @@ const defaultEventChoiceEffectHandlers: EventChoiceEffectHandlerMap = {
       return;
     }
 
+    adjustTrack(state, "victory", clues);
     pushLogEntry(state, "[Улика]", `Получено улик: ${clues}.`, "effect");
   },
   noise: (state, value) => {
