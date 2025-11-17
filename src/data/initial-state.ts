@@ -34,6 +34,8 @@ const initialState = {
   gameOutcome: null,
 } as GameState;
 
+initialState.modifiers = [];
+
 function createShuffledDeck<T>(cards: T[] | undefined): T[] {
   const deck = [...(cards ?? [])];
   for (let index = deck.length - 1; index > 0; index -= 1) {

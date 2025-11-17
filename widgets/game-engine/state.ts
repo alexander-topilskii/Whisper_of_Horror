@@ -28,6 +28,18 @@ export interface DeckCollectionState {
   event: EventDeckState;
 }
 
+export interface PlayerCardModifierEffect {
+  reduceSanityLoss?: number;
+}
+
+export interface PlayerCardEffect {
+  sanityRestore?: number;
+  woundRestore?: number;
+  removeNegativeStatus?: boolean;
+  duration?: number;
+  modifier?: PlayerCardModifierEffect;
+}
+
 export interface CardDefinition {
   id: string;
   name: string;
@@ -38,7 +50,7 @@ export interface CardDefinition {
   playable: boolean;
   effects?: EventChoiceEffect;
   type?: string;
-  effect?: number;
+  effect?: number | PlayerCardEffect;
   chance?: number;
   successCount?: number;
   failCount?: number;
@@ -52,6 +64,14 @@ export interface StatusEffect {
   name: string;
   description: string;
   tone: "positive" | "negative" | "neutral";
+}
+
+export interface CardModifierState {
+  id: string;
+  sourceCardId: string;
+  label: string;
+  remainingTurns: number;
+  reduceSanityLoss?: number;
 }
 
 export interface NpcTimerState {
@@ -197,6 +217,7 @@ export interface GameState {
   scenario: ScenarioState;
   log: LogEntry[];
   journalScript: JournalScriptState;
+  modifiers: CardModifierState[];
   loopStage: "story" | "player" | "event" | "finished";
   eventResolutionPending: boolean;
   gameOutcome: "victory" | "defeat" | null;

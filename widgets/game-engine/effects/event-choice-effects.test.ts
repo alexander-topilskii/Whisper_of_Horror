@@ -17,7 +17,10 @@ function createState(): GameState {
       { id: "cold", label: "Холод", value: 0, max: 3, type: "generic" },
       { id: "fear", label: "Страх", value: 0, max: 4, type: "generic" },
     ],
-    characterStats: [{ id: "will", label: "Will", value: 1, max: 6 }],
+    characterStats: [
+      { id: "will", label: "Will", value: 1, max: 6 },
+      { id: "sanity", label: "Рассудок", value: 3, max: 7 },
+    ],
     statuses: [],
     npcs: [],
     event: { id: "test-event", title: "", flavor: "", effect: "", choices: [] },
@@ -43,6 +46,7 @@ function createState(): GameState {
     gameOutcome: null,
     autoScrollLog: true,
     soundEnabled: true,
+    modifiers: [],
   };
 }
 
@@ -132,5 +136,25 @@ describe("applyEventChoiceEffects", () => {
 
     expect(logDescriptor).toEqual({ type: "[Тест]", variant: "effect" });
     expect(state.log).toHaveLength(0);
+  });
+
+  it("mitigates sanity loss when protective modifiers are active", () => {
+    const state = createState();
+    state.modifiers.push({
+      id: "shield",
+      sourceCardId: "willpower_push",
+      label: "Силой воли",
+      remainingTurns: 2,
+      reduceSanityLoss: 1,
+    });
+
+    const logDescriptor = applyEventChoiceEffects(state, {
+      statDeltas: [{ statId: "sanity", delta: -2 }],
+    });
+
+    expect(logDescriptor).toEqual({ type: "[Событие]" });
+    const sanity = state.characterStats.find((stat) => stat.id === "sanity");
+    expect(sanity?.value).toBe(2);
+    expect(state.log[0]).toMatchObject({ type: "[Рассудок]" });
   });
 });

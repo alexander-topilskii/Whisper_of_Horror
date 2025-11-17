@@ -24,6 +24,7 @@
   },
   "worldTracks": [],
   "npcs": [],
+  "modifiers": [],
   "log": [],
   "autoScrollLog": true,
   "soundEnabled": true
