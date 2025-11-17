@@ -5,7 +5,6 @@ import journalScript from "./journal-script.json";
 import scenario from "./scenario.json";
 import worldSettings from "./world-settings.json";
 import type { CardDefinition, GameState, JournalScriptEntry } from "../../widgets/game-engine/state";
-import { pushLogEntry } from "../../widgets/game-engine/state";
 import { normalizeEventDeck, type RawEventCard } from "./normalize-event-cards";
 import { createEventPlaceholder } from "./event-placeholder";
 
@@ -34,6 +33,7 @@ const initialState = {
   eventResolutionSummary: null,
   gameOutcome: null,
   temporaryMarkers: [],
+  lastCardPlay: null,
 } as GameState;
 
 initialState.modifiers = [];
@@ -111,15 +111,10 @@ appendScenarioMessagesToLog(initialState);
 const technicalEntries = (journalScript.journalScript as JournalScriptEntry[] | undefined) ?? [];
 tutorialEntries.push(...technicalEntries);
 
-const firstEntry = tutorialEntries[0];
-if (firstEntry) {
-  pushLogEntry(initialState, firstEntry.type, firstEntry.body, firstEntry.variant ?? "story");
-}
-
 initialState.journalScript = {
   entries: tutorialEntries,
-  nextIndex: firstEntry ? 1 : 0,
-  completed: tutorialEntries.length <= 1,
+  nextIndex: 0,
+  completed: tutorialEntries.length === 0,
 };
 
 initialState.loopStage = initialState.journalScript.completed ? "player" : "story";

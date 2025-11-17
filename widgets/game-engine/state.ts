@@ -59,6 +59,13 @@ export interface CardDefinition {
   failText?: string;
 }
 
+export interface CardPlaySummary {
+  id: string;
+  name: string;
+  description: string;
+  outcome: "success" | "fail";
+}
+
 export interface StatusEffect {
   id: string;
   name: string;
@@ -220,6 +227,7 @@ export interface GameState {
   turn: TurnState;
   decks: DeckCollectionState;
   hand: CardDefinition[];
+  lastCardPlay: CardPlaySummary | null;
   phase: {
     icon: string;
     name: string;
