@@ -407,6 +407,52 @@ function ensureStyles() {
       -webkit-overflow-scrolling: touch;
     }
 
+    .woh-hand-play-summary {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid ${colors.panelBorder};
+      background: linear-gradient(160deg, var(--woh-panel-surface-deep), ${colors.panelSurfaceAlt});
+      box-shadow: inset 0 0 0 1px ${colors.panelInsetShadow};
+      color: ${colors.cardDescription};
+      font-size: 0.85rem;
+      line-height: 1.45;
+    }
+
+    .woh-hand-play-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .woh-hand-play-title {
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: ${colors.cardCosts};
+    }
+
+    .woh-hand-play-outcome {
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .woh-hand-play-outcome[data-result='success'] {
+      color: ${colors.statHealText};
+    }
+
+    .woh-hand-play-outcome[data-result='fail'] {
+      color: ${colors.statDamageText};
+    }
+
+    .woh-hand-play-text {
+      margin: 0;
+      color: ${colors.cardDescription};
+    }
+
     .woh-hand-card {
       position: relative;
       flex: 0 0 140px;
@@ -1549,6 +1595,11 @@ const TEMPLATE = `
                     </div>
                   </div>
                   <div class="woh-hand" role="list" data-role="hand"></div>
+                  <div
+                    class="woh-hand-play-summary is-hidden"
+                    data-role="card-play-summary"
+                    aria-live="polite"
+                  ></div>
                 </div>
                 <div class="woh-turn-summary">
                   <div class="woh-turn-summary-items" data-role="player-deck"></div>
@@ -1621,6 +1672,7 @@ export class GameLayout {
   private readonly actionsLabel: HTMLElement;
   private readonly playerDeck: HTMLElement;
   private readonly handList: HTMLElement;
+  private readonly cardPlaySummary: HTMLElement;
   private readonly phaseIcon: HTMLElement;
   private readonly phaseTitle: HTMLElement;
   private readonly phaseSubtitle: HTMLElement;
@@ -1745,6 +1797,7 @@ export class GameLayout {
     this.actionsLabel = this.requireElement('[data-role="actions-label"]');
     this.playerDeck = this.requireElement('[data-role="player-deck"]');
     this.handList = this.requireElement('[data-role="hand"]');
+    this.cardPlaySummary = this.requireElement('[data-role="card-play-summary"]');
     this.phaseIcon = this.requireElement('[data-role="phase-icon"]');
     this.phaseTitle = this.requireElement('[data-role="phase-title"]');
     this.phaseSubtitle = this.requireElement('[data-role="phase-subtitle"]');
@@ -1800,6 +1853,7 @@ export class GameLayout {
     this.renderActions(state.turn);
     this.renderPlayerDeck(state.decks);
     this.renderHand(state.hand);
+    this.renderLastCardPlay(state.lastCardPlay);
     this.renderPhase(state.phase);
     this.renderStatuses(state.statuses, state.temporaryMarkers);
     this.renderNpcs(state.npcs);
@@ -1894,6 +1948,35 @@ export class GameLayout {
     });
 
     this.handList.append(fragment);
+  }
+
+  private renderLastCardPlay(lastPlay: GameState['lastCardPlay']): void {
+    this.cardPlaySummary.innerHTML = '';
+    if (!lastPlay) {
+      this.cardPlaySummary.classList.add('is-hidden');
+      return;
+    }
+
+    this.cardPlaySummary.classList.remove('is-hidden');
+    const header = document.createElement('div');
+    header.className = 'woh-hand-play-header';
+
+    const title = document.createElement('span');
+    title.className = 'woh-hand-play-title';
+    title.textContent = `Последняя карта: ${lastPlay.name}`;
+
+    const outcome = document.createElement('span');
+    outcome.className = 'woh-hand-play-outcome';
+    outcome.dataset.result = lastPlay.outcome;
+    outcome.textContent = lastPlay.outcome === 'success' ? 'Успех' : 'Провал';
+
+    header.append(title, outcome);
+
+    const body = document.createElement('p');
+    body.className = 'woh-hand-play-text';
+    body.textContent = lastPlay.description;
+
+    this.cardPlaySummary.append(header, body);
   }
 
   private renderPhase(phase: GameState['phase']): void {

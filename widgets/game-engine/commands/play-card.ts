@@ -158,8 +158,17 @@ export class PlayCardCommand implements GameCommand {
       ? card.successText ?? `Карта «${card.name}» приносит пользу.`
       : card.failText ?? `Карта «${card.name}» не срабатывает.`;
     const emoji = isSuccess ? '✅' : '❌';
+    const descriptionText = card.description?.trim();
     const baseBody = `Карта «${card.name}». ${narrative}`;
-    pushLogEntry(state, logType, `${baseBody} ${emoji}`, logVariant);
+    const withDescription = descriptionText ? `${baseBody} ${emoji}\n\n${descriptionText}` : `${baseBody} ${emoji}`;
+    pushLogEntry(state, logType, withDescription, logVariant);
+
+    state.lastCardPlay = {
+      id: card.id,
+      name: card.name,
+      description: card.description,
+      outcome: isSuccess ? "success" : "fail",
+    };
 
     const shouldRemove = this.shouldRemoveAfterUse(card, isSuccess ? "successCount" : "failCount");
     if (!shouldRemove) {
