@@ -46,38 +46,26 @@ function createShuffledDeck<T>(cards: T[] | undefined): T[] {
   return deck;
 }
 
-const STARTING_HAND_SIZE = 3;
 const playerDeckData = handCards.playerDeck ?? { hand: [], drawPile: [], discardPile: [] };
-const predefinedHand = (playerDeckData.hand ?? []) as CardDefinition[];
-const plannedOpeningCards: CardDefinition[] = predefinedHand.slice(0, STARTING_HAND_SIZE);
-const overflowHand = predefinedHand.slice(STARTING_HAND_SIZE);
-const combinedDrawPile: CardDefinition[] = [
-  ...overflowHand,
+const shuffledPlayerDeck = createShuffledDeck<CardDefinition>([
+  ...((playerDeckData.hand ?? []) as CardDefinition[]),
   ...((playerDeckData.drawPile ?? []) as CardDefinition[]),
-];
-const shuffledDrawPile = createShuffledDeck<CardDefinition>(combinedDrawPile);
-
-while (plannedOpeningCards.length < STARTING_HAND_SIZE && shuffledDrawPile.length) {
-  const nextCard = shuffledDrawPile.shift();
-  if (!nextCard) {
-    break;
-  }
-  plannedOpeningCards.push(nextCard);
-}
+]);
 
 initialState.hand = [];
-initialState.decks.player.drawPile = [...plannedOpeningCards, ...shuffledDrawPile];
+initialState.decks.player.drawPile = shuffledPlayerDeck;
 initialState.decks.player.discardPile = playerDeckData.discardPile ?? [];
-initialState.decks.player.draw = initialState.decks.player.drawPile.length;
+initialState.decks.player.draw = shuffledPlayerDeck.length;
 initialState.decks.player.discard = initialState.decks.player.discardPile.length;
 
 const rawEventDeck: RawEventCard[] = (eventCard.eventDeck as RawEventCard[] | undefined) ?? [];
 const eventDeckData = normalizeEventDeck(rawEventDeck);
-initialState.decks.event.drawPile = createShuffledDeck(eventDeckData);
+const shuffledEventDeck = createShuffledDeck(eventDeckData);
+initialState.decks.event.drawPile = shuffledEventDeck;
 initialState.decks.event.discardPile = [];
-initialState.decks.event.draw = eventDeckData.length;
+initialState.decks.event.draw = shuffledEventDeck.length;
 initialState.decks.event.discard = 0;
-initialState.decks.event.next = eventDeckData[0]?.title ?? null;
+initialState.decks.event.next = shuffledEventDeck[0]?.title ?? null;
 
 const firstTask = initialState.scenario?.firstTask;
 const goal = firstTask?.technicalGoal;
