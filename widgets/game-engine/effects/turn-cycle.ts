@@ -93,6 +93,7 @@ export function startPlayerTurn(state: GameState): void {
     return;
   }
 
+  decayCardModifiers(state);
   state.loopStage = "player";
   state.eventResolutionPending = false;
   state.turn.number += 1;
@@ -102,6 +103,24 @@ export function startPlayerTurn(state: GameState): void {
   state.phase.subtitle = "Сыграйте карты и подготовьтесь";
   const drawn = drawPlayerCards(state, 3);
   pushLogEntry(state, "[Ход]", `Начинается ход ${state.turn.number}. Вы взяли ${drawn} карт(ы).`, "system");
+}
+
+function decayCardModifiers(state: GameState): void {
+  if (!state.modifiers?.length) {
+    return;
+  }
+
+  const expired = state.modifiers.filter((modifier) => {
+    modifier.remainingTurns -= 1;
+    return modifier.remainingTurns <= 0;
+  });
+
+  if (expired.length) {
+    expired.forEach((modifier) => {
+      pushLogEntry(state, "[Эффект]", `Эффект «${modifier.label}» рассеивается.`, "effect");
+    });
+    state.modifiers = state.modifiers.filter((modifier) => modifier.remainingTurns > 0);
+  }
 }
 
 export function beginEventPhase(state: GameState): EventCardState | null {

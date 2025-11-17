@@ -1,4 +1,4 @@
-import type { GameCommand, GameState, LogEntryVariant } from "../state";
+import type { GameCommand, GameState, LogEntryVariant, PlayerCardEffect, StatusEffect } from "../state";
 import { pushLogEntry } from "../state";
 import {
   adjustActions,
@@ -20,20 +20,50 @@ function adjustStat(state: GameState, statId: string, delta: number): void {
   applyStatDeltas(state, [{ statId, delta }]);
 }
 
+function isPlayerCardEffect(effect: CardDefinition["effect"]): effect is PlayerCardEffect {
+  return typeof effect === "object" && effect !== null;
+}
+
+function getNumericEffectValue(card: CardDefinition): number | null {
+  return typeof card.effect === "number" ? card.effect : null;
+}
+
+function removeStatusById(state: GameState, statusId: string): StatusEffect | null {
+  const index = state.statuses.findIndex((status) => status.id === statusId);
+  if (index === -1) {
+    return null;
+  }
+
+  const [removed] = state.statuses.splice(index, 1);
+  return removed ?? null;
+}
+
+function removeFirstNegativeStatus(state: GameState): StatusEffect | null {
+  const index = state.statuses.findIndex((status) => status.tone === "negative");
+  if (index === -1) {
+    return null;
+  }
+
+  const [removed] = state.statuses.splice(index, 1);
+  return removed ?? null;
+}
+
 const CARD_BEHAVIORS: Record<string, CardBehavior> = {
   Исследование: {
     onSuccess: (state, card) => {
-      if (!card.effect) {
+      const effectValue = getNumericEffectValue(card);
+      if (effectValue === null) {
         return null;
       }
 
-      adjustTrack(state, "victory", card.effect);
+      adjustTrack(state, "victory", effectValue);
       return "[Улика]";
     },
   },
   Лечение: {
     onSuccess: (state, card) => {
-      adjustStat(state, "health", card.effect ?? 1);
+      const healAmount = getNumericEffectValue(card) ?? 1;
+      adjustStat(state, "health", healAmount);
       return "[Здоровье]";
     },
     onFailure: (state) => {
@@ -43,7 +73,8 @@ const CARD_BEHAVIORS: Record<string, CardBehavior> = {
   },
   Терапия: {
     onSuccess: (state, card) => {
-      adjustStat(state, "sanity", card.effect ?? 1);
+      const calmAmount = getNumericEffectValue(card) ?? 1;
+      adjustStat(state, "sanity", calmAmount);
       return "[Рассудок]";
     },
     onFailure: (state) => {
@@ -53,7 +84,7 @@ const CARD_BEHAVIORS: Record<string, CardBehavior> = {
   },
   Поддержка: {
     onSuccess: (state, card) => {
-      const relief = Math.abs(card.effect ?? 1);
+      const relief = Math.abs(getNumericEffectValue(card) ?? 1);
       adjustTrack(state, "doom", -relief);
       return "[Поддержка]";
     },
@@ -108,6 +139,8 @@ export class PlayCardCommand implements GameCommand {
         logVariant = "effect";
       }
 
+      this.applyPlayerCardEffect(state, card);
+
       if (card.effects) {
         const { type, variant } = applyEventChoiceEffects(state, card.effects);
         logType = type;
@@ -157,5 +190,70 @@ export class PlayCardCommand implements GameCommand {
     const nextValue = currentValue - 1;
     card[key] = nextValue;
     return nextValue <= 0;
+  }
+
+  private applyPlayerCardEffect(state: GameState, card: CardDefinition): void {
+    if (!isPlayerCardEffect(card.effect)) {
+      return;
+    }
+
+    const effect = card.effect;
+
+    if (typeof effect.sanityRestore === "number" && effect.sanityRestore !== 0) {
+      adjustStat(state, "sanity", effect.sanityRestore);
+      pushLogEntry(
+        state,
+        "[Рассудок]",
+        `«${card.name}» возвращает ${effect.sanityRestore} ед. рассудка.`,
+        "effect",
+      );
+    }
+
+    if (typeof effect.woundRestore === "number" && effect.woundRestore !== 0) {
+      adjustStat(state, "health", effect.woundRestore);
+      pushLogEntry(
+        state,
+        "[Здоровье]",
+        `«${card.name}» залечивает ${effect.woundRestore} урона.`,
+        "effect",
+      );
+      const removedWound = removeStatusById(state, "wounded");
+      if (removedWound) {
+        pushLogEntry(state, "[Состояние]", `Статус «${removedWound.name}» снят.`, "effect");
+      }
+    }
+
+    if (effect.removeNegativeStatus) {
+      const removedStatus = removeFirstNegativeStatus(state);
+      if (removedStatus) {
+        pushLogEntry(
+          state,
+          "[Состояние]",
+          `«${card.name}» избавляет от состояния «${removedStatus.name}».`,
+          "effect",
+        );
+      } else {
+        pushLogEntry(state, "[Состояние]", "Негативных статусов не осталось.", "effect");
+      }
+    }
+
+    const modifierValue = effect.modifier?.reduceSanityLoss ?? 0;
+    if (modifierValue > 0) {
+      const duration = Math.max(1, effect.duration ?? 1);
+      const modifierId = `card-mod-${card.id}-${Date.now().toString(36)}`;
+      state.modifiers.push({
+        id: modifierId,
+        sourceCardId: card.id,
+        label: card.name ?? card.id,
+        remainingTurns: duration,
+        reduceSanityLoss: modifierValue,
+      });
+      pushLogEntry(
+        state,
+        "[Эффект]",
+        `«${card.name}» укрепляет волю: потери рассудка уменьшаются на ${modifierValue} ещё ${duration} хода(ов).`,
+        "effect",
+      );
+    }
   }
 }

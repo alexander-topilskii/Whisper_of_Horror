@@ -27,8 +27,36 @@ export function applyStatDeltas(state: GameState, deltas: StatDelta[] | undefine
       return;
     }
 
-    stat.value = clamp(stat.value + delta.delta, 0, stat.max);
+    let deltaValue = delta.delta;
+    if (stat.id === "sanity") {
+      deltaValue = applySanityMitigation(state, deltaValue);
+    }
+
+    stat.value = clamp(stat.value + deltaValue, 0, stat.max);
   });
+}
+
+function applySanityMitigation(state: GameState, delta: number): number {
+  if (delta >= 0) {
+    return delta;
+  }
+
+  const reduction = (state.modifiers ?? []).reduce(
+    (total, modifier) => total + (modifier.reduceSanityLoss ?? 0),
+    0,
+  );
+
+  if (reduction <= 0) {
+    return delta;
+  }
+
+  const mitigated = Math.min(0, delta + reduction);
+  if (mitigated !== delta) {
+    const prevented = Math.abs(delta) - Math.abs(mitigated);
+    pushLogEntry(state, "[Рассудок]", `Воля смягчает урон рассудку на ${prevented}.`, "effect");
+  }
+
+  return mitigated;
 }
 
 export function adjustTrack(state: GameState, trackId: string, delta: number) {
