@@ -61,7 +61,7 @@ describe("applyEventChoiceEffects", () => {
     expect(logDescriptor).toEqual({ type: "[Событие]" });
     expect(state.characterStats.find((stat: CharacterStatState) => stat.id === "will")?.value).toBe(3);
     expect(state.worldTracks.find((track: TrackState) => track.id === "doom")?.value).toBe(4);
-    expect(state.worldTracks.find((track: TrackState) => track.id === "victory")?.value).toBe(4);
+    expect(state.worldTracks.find((track: TrackState) => track.id === "victory")?.value).toBe(6);
     expect(state.turn.actions.remaining).toBe(2);
     expect(state.log).toHaveLength(1);
     expect(state.log[0]).toMatchObject({ type: "[Улика]", body: "Получено улик: 2." });
