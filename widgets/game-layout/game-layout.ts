@@ -271,14 +271,29 @@ function ensureStyles() {
       margin-bottom: 0;
     }
 
-    .woh-turn-resources {
+    .woh-turn-card {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .woh-turn-main {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
+      gap: 16px;
+      padding: 20px;
+    }
+
+    .woh-turn-header {
+      display: flex;
+      flex-direction: column;
       gap: 16px;
     }
 
-    .woh-actions {
+    .woh-turn-header .woh-panel-header {
+      margin-bottom: 0;
+    }
+
+    .woh-turn-actions {
       display: flex;
       align-items: center;
       gap: 12px;
@@ -287,6 +302,7 @@ function ensureStyles() {
     .woh-action-dots {
       display: flex;
       gap: 6px;
+      flex-wrap: wrap;
     }
 
     .woh-action-dot {
@@ -303,37 +319,38 @@ function ensureStyles() {
       background: ${colors.actionDotActiveBackground};
     }
 
-    .woh-actions-label {
-      font-size: 0.76rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: ${colors.actionsLabel};
-    }
-
-    .woh-deck-status {
+    .woh-turn-summary {
+      margin-top: auto;
+      padding: 14px 20px;
+      border-top: 1px solid ${colors.eventDeckBorder};
+      background: ${colors.eventDeckBackground};
+      box-shadow: inset 0 1px 0 ${colors.eventDeckInset};
       display: flex;
-      gap: 16px;
+      flex-wrap: wrap;
+      gap: 12px 20px;
       font-size: 0.72rem;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: ${colors.deckStatus};
+      color: ${colors.eventDeckText};
     }
 
-    .woh-deck-indicator {
+    .woh-turn-summary-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 20px;
+    }
+
+    .woh-turn-summary-item {
       display: flex;
       align-items: center;
       gap: 6px;
     }
 
-    .woh-deck-icon {
-      width: 24px;
-      height: 24px;
-      border-radius: 6px;
-      border: 1px solid ${colors.deckIconBorder};
-      display: grid;
-      place-items: center;
-      background: ${colors.deckIconBackground};
-      font-size: 0.65rem;
+    .woh-actions-label {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: ${colors.actionsLabel};
     }
 
     .woh-hand {
@@ -1088,13 +1105,14 @@ function ensureStyles() {
         justify-content: space-between;
       }
 
-      .woh-turn-resources {
+      .woh-turn-summary {
         flex-direction: column;
-        align-items: stretch;
+        align-items: flex-start;
+        gap: 10px;
       }
 
-      .woh-deck-status {
-        justify-content: space-between;
+      .woh-turn-summary-items {
+        width: 100%;
       }
     }
 
@@ -1170,11 +1188,7 @@ function ensureStyles() {
         margin-bottom: 10px;
       }
 
-      .woh-turn-resources {
-        gap: 12px;
-      }
-
-      .woh-actions {
+      .woh-turn-actions {
         flex-direction: column;
         align-items: stretch;
         gap: 10px;
@@ -1182,17 +1196,18 @@ function ensureStyles() {
 
       .woh-action-dots {
         justify-content: center;
-      }
-
-      .woh-deck-status {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 6px;
         width: 100%;
       }
 
-      .woh-deck-indicator {
-        justify-content: space-between;
+      .woh-turn-summary {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .woh-turn-summary-items {
+        flex-direction: column;
+        gap: 6px;
         width: 100%;
       }
 
@@ -1337,7 +1352,7 @@ function ensureStyles() {
         padding: 10px;
       }
 
-      .woh-actions {
+      .woh-turn-actions {
         gap: 8px;
       }
 
@@ -1439,22 +1454,23 @@ const TEMPLATE = `
         </article>
       </section>
       <section class="woh-column woh-column--left">
-        <article class="woh-panel">
-          <h2 class="woh-panel-title">Ресурсы Хода</h2>
-          <div class="woh-turn-resources">
-            <div class="woh-actions">
-              <div class="woh-action-dots" role="group" aria-label="Очки действия" data-role="action-dots"></div>
-              <span class="woh-actions-label" data-role="actions-label"></span>
+        <article class="woh-panel woh-panel--glass woh-panel--hand woh-turn-card" data-panel="hand">
+          <div class="woh-turn-main">
+            <div class="woh-turn-header">
+              <div class="woh-panel-header">
+                <h2 class="woh-panel-title">Ход игрока</h2>
+                <button class="woh-button woh-button--ghost" type="button" data-action="end-turn">Закончить ход</button>
+              </div>
+              <div class="woh-turn-actions">
+                <div class="woh-action-dots" role="group" aria-label="Очки действия" data-role="action-dots"></div>
+              </div>
             </div>
-            <div class="woh-deck-status" data-role="player-deck"></div>
+            <div class="woh-hand" role="list" data-role="hand"></div>
           </div>
-        </article>
-        <article class="woh-panel woh-panel--glass woh-panel--hand" data-panel="hand">
-          <div class="woh-panel-header">
-            <h2 class="woh-panel-title">Рука</h2>
-            <button class="woh-button woh-button--ghost" type="button" data-action="end-turn">Закончить ход</button>
+          <div class="woh-turn-summary">
+            <div class="woh-turn-summary-items" data-role="player-deck"></div>
+            <span class="woh-actions-label" data-role="actions-label"></span>
           </div>
-          <div class="woh-hand" role="list" data-role="hand"></div>
         </article>
       </section>
       <section class="woh-column woh-column--right">
@@ -1694,31 +1710,21 @@ export class GameLayout {
       fragment.append(dot);
     }
     this.actionDots.append(fragment);
-    this.actionsLabel.textContent = `Действия: ${turn.actions.remaining}/${turn.actions.total}`;
+    this.actionsLabel.textContent = `Количество действий: ${turn.actions.remaining}/${turn.actions.total}`;
   }
 
   private renderPlayerDeck(decks: GameState['decks']): void {
     this.playerDeck.innerHTML = '';
 
-    const drawIndicator = document.createElement('div');
-    drawIndicator.className = 'woh-deck-indicator';
-    const drawIcon = document.createElement('span');
-    drawIcon.className = 'woh-deck-icon';
-    drawIcon.textContent = '🂠';
-    const drawLabel = document.createElement('span');
-    drawLabel.textContent = `Колода: ${decks.player.draw}`;
-    drawIndicator.append(drawIcon, drawLabel);
+    const deckSummary = document.createElement('span');
+    deckSummary.className = 'woh-turn-summary-item';
+    deckSummary.textContent = `Колода игрока: ${decks.player.draw}`;
 
-    const discardIndicator = document.createElement('div');
-    discardIndicator.className = 'woh-deck-indicator';
-    const discardIcon = document.createElement('span');
-    discardIcon.className = 'woh-deck-icon';
-    discardIcon.textContent = '♻︎';
-    const discardLabel = document.createElement('span');
-    discardLabel.textContent = `Сброс: ${decks.player.discard}`;
-    discardIndicator.append(discardIcon, discardLabel);
+    const discardSummary = document.createElement('span');
+    discardSummary.className = 'woh-turn-summary-item';
+    discardSummary.textContent = `Сброс: ${decks.player.discard}`;
 
-    this.playerDeck.append(drawIndicator, discardIndicator);
+    this.playerDeck.append(deckSummary, discardSummary);
   }
 
   private renderHand(hand: GameState['hand']): void {
