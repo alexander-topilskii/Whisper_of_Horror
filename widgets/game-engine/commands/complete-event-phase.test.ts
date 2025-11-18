@@ -50,6 +50,7 @@ function createResolvedEventState(): GameState {
     eventResolutionPending: false,
     eventResolutionSummary: { title: "[Событие]", body: "Завершено", variant: "story" },
     gameOutcome: null,
+    ending: null,
     autoScrollLog: true,
     soundEnabled: true,
     modifiers: [],

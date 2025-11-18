@@ -254,6 +254,10 @@ function ensureStyles() {
       --woh-panel-accent: ${colors.panelAccentDefeat};
     }
 
+    .woh-panel--interaction[data-stage='ending'] {
+      --woh-panel-accent: ${colors.panelAccentDefeat};
+    }
+
     .woh-panel-title {
       font-family: "IM Fell English", "Times New Roman", serif;
       font-size: 0.98rem;
@@ -299,6 +303,27 @@ function ensureStyles() {
       display: flex;
       flex-direction: column;
       gap: 16px;
+    }
+
+    .woh-ending-card {
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .woh-ending-title {
+      font-size: 1.05rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: ${colors.panelTitle};
+    }
+
+    .woh-ending-text {
+      font-size: 0.96rem;
+      line-height: 1.7;
+      color: ${colors.logEntriesText};
+      white-space: pre-line;
     }
 
     .woh-story-type {
@@ -1630,6 +1655,15 @@ const TEMPLATE = `
                 </button>
               </div>
             </div>
+            <div class="woh-interaction-view woh-interaction-view--ending" data-view="ending">
+              <div class="woh-ending-card">
+                <div class="woh-ending-title" data-role="ending-title"></div>
+                <p class="woh-ending-text" data-role="ending-text"></p>
+                <button class="woh-button woh-button--full" type="button" data-action="restart-game">
+                  Начать с начала
+                </button>
+              </div>
+            </div>
           </div>
         </article>
       </section>
@@ -1686,6 +1720,7 @@ export class GameLayout {
   private readonly storyView: HTMLElement;
   private readonly playerView: HTMLElement;
   private readonly eventView: HTMLElement;
+  private readonly endingView: HTMLElement;
   private readonly storyTitle: HTMLElement;
   private readonly storyBody: HTMLElement;
   private readonly eventCard: HTMLElement;
@@ -1697,6 +1732,8 @@ export class GameLayout {
   private readonly eventResult: HTMLElement;
   private readonly eventResultTitle: HTMLElement;
   private readonly eventResultBody: HTMLElement;
+  private readonly endingTitle: HTMLElement;
+  private readonly endingText: HTMLElement;
   private readonly logEntries: HTMLDivElement;
   private readonly soundToggle: HTMLButtonElement;
   private readonly newGameButton: HTMLButtonElement;
@@ -1704,6 +1741,7 @@ export class GameLayout {
   private readonly logAdvanceButton: HTMLButtonElement;
   private readonly endTurnButton: HTMLButtonElement;
   private readonly eventContinueButton: HTMLButtonElement;
+  private readonly endingRestartButton: HTMLButtonElement;
   private lastRenderedLogSize = 0;
   private statSnapshot = new Map<string, number>();
 
@@ -1811,6 +1849,7 @@ export class GameLayout {
     this.storyView = this.requireElement('[data-view="story"]');
     this.playerView = this.requireElement('[data-view="player"]');
     this.eventView = this.requireElement('[data-view="event"]');
+    this.endingView = this.requireElement('[data-view="ending"]');
     this.storyTitle = this.requireElement('[data-role="story-title"]');
     this.storyBody = this.requireElement('[data-role="story-text"]');
     this.eventCard = this.requireElement('[data-role="event-card"]');
@@ -1822,6 +1861,8 @@ export class GameLayout {
     this.eventResult = this.requireElement('[data-role="event-result"]');
     this.eventResultTitle = this.requireElement('[data-role="event-result-title"]');
     this.eventResultBody = this.requireElement('[data-role="event-result-body"]');
+    this.endingTitle = this.requireElement('[data-role="ending-title"]');
+    this.endingText = this.requireElement('[data-role="ending-text"]');
     this.logEntries = this.requireElement<HTMLDivElement>('[data-role="log-entries"]');
     this.soundToggle = this.requireElement<HTMLButtonElement>('[data-action="toggle-sound"]');
     this.newGameButton = this.requireElement<HTMLButtonElement>('[data-action="new-game"]');
@@ -1829,6 +1870,7 @@ export class GameLayout {
     this.logAdvanceButton = this.requireElement<HTMLButtonElement>('[data-action="advance-log"]');
     this.endTurnButton = this.requireElement<HTMLButtonElement>('[data-action="end-turn"]');
     this.eventContinueButton = this.requireElement<HTMLButtonElement>('[data-action="complete-event"]');
+    this.endingRestartButton = this.requireElement<HTMLButtonElement>('[data-action="restart-game"]');
 
     this.enableTooltipToggles();
     this.enableTooltipPositioning();
@@ -1838,6 +1880,7 @@ export class GameLayout {
     this.logAdvanceButton.addEventListener('click', this.handleAdvanceLogClick);
     this.endTurnButton.addEventListener('click', this.handleEndTurnClick);
     this.eventContinueButton.addEventListener('click', this.handleCompleteEventClick);
+    this.endingRestartButton.addEventListener('click', this.handleNewGameClick);
     this.root.addEventListener('click', this.handleRootCommand);
   }
 
@@ -2238,12 +2281,16 @@ export class GameLayout {
   private renderEvent(state: GameState): void {
     const event = state.event;
     const tone = event.type ?? 'mystery';
-    this.interactionPanel.setAttribute('data-event-tone', tone);
+    const eventActive = state.loopStage === 'event' && !state.gameOutcome;
+    if (eventActive) {
+      this.interactionPanel.setAttribute('data-event-tone', tone);
+    } else {
+      this.interactionPanel.removeAttribute('data-event-tone');
+    }
     this.eventCard.setAttribute('data-event-tone', tone);
     this.eventTitle.textContent = event.title;
     this.eventFlavor.textContent = event.flavor;
     this.eventEffect.textContent = event.effect;
-    const eventActive = state.loopStage === 'event' && !state.gameOutcome;
     const awaitingChoice = eventActive && state.eventResolutionPending;
     this.eventChoices.classList.toggle('is-hidden', !awaitingChoice);
     this.renderEventChoices(event, awaitingChoice);
@@ -2309,14 +2356,17 @@ export class GameLayout {
   private renderInteractionStage(state: GameState): void {
     const storyActive = state.loopStage === 'story' && this.hasPendingJournalEntry(state.journalScript);
     const eventActive = state.loopStage === 'event' && !state.gameOutcome;
-    const stage = storyActive ? 'story' : eventActive ? 'event' : 'player';
+    const endingActive = state.loopStage === 'finished' && Boolean(state.gameOutcome);
+    const stage = endingActive ? 'ending' : storyActive ? 'story' : eventActive ? 'event' : 'player';
     this.interactionPanel.setAttribute('data-stage', stage);
     this.storyView.classList.toggle('is-active', storyActive);
     this.playerView.classList.toggle('is-active', stage === 'player');
     this.eventView.classList.toggle('is-active', eventActive);
+    this.endingView.classList.toggle('is-active', endingActive);
     this.renderStoryPrompt(state.journalScript, storyActive);
     this.renderEventResolution(state, eventActive);
     this.renderEndTurnButton(state, stage === 'player');
+    this.renderEndingView(state, endingActive);
   }
 
   private renderStoryPrompt(script: GameState['journalScript'], active: boolean): void {
@@ -2352,6 +2402,32 @@ export class GameLayout {
     this.eventResult.classList.toggle('is-hidden', !showResult);
     this.eventContinueButton.classList.toggle('is-hidden', !showResult);
     this.eventContinueButton.disabled = !showResult;
+  }
+
+  private renderEndingView(state: GameState, active: boolean): void {
+    if (!active) {
+      this.endingTitle.textContent = '';
+      this.endingText.textContent = '';
+      this.interactionPanel.removeAttribute('data-ending-outcome');
+      return;
+    }
+
+    const ending = state.ending;
+    const outcome = state.gameOutcome;
+    const defaultTitle = outcome === 'victory' ? 'Победа' : 'Поражение';
+    const defaultText =
+      outcome === 'victory'
+        ? 'Туман рассеивается. Нажмите «Начать с начала», чтобы переиграть расследование.'
+        : 'Расследование сорвалось. Нажмите «Начать с начала», чтобы попытаться снова.';
+
+    this.endingTitle.textContent = ending?.title ?? defaultTitle;
+    this.endingText.textContent = ending?.text ?? defaultText;
+
+    if (outcome) {
+      this.interactionPanel.setAttribute('data-ending-outcome', outcome);
+    } else {
+      this.interactionPanel.removeAttribute('data-ending-outcome');
+    }
   }
 
   private renderLog(log: GameState['log'], autoScroll: boolean): void {
