@@ -32,6 +32,7 @@ const initialState = {
   eventResolutionPending: false,
   eventResolutionSummary: null,
   gameOutcome: null,
+  ending: null,
   temporaryMarkers: [],
   lastCardPlay: null,
 } as GameState;
@@ -121,6 +122,7 @@ initialState.loopStage = initialState.journalScript.completed ? "player" : "stor
 initialState.eventResolutionPending = false;
 initialState.eventResolutionSummary = null;
 initialState.gameOutcome = null;
+initialState.ending = null;
 
 initialState.worldTracks = [
   {

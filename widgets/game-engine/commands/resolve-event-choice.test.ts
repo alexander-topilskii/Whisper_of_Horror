@@ -60,6 +60,7 @@ function createEventState(): GameState {
     loopStage: "event",
     eventResolutionPending: true,
     gameOutcome: null,
+    ending: null,
     autoScrollLog: true,
     soundEnabled: true,
     modifiers: [],

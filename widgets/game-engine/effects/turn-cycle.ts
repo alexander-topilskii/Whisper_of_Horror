@@ -3,6 +3,7 @@ import { pushLogEntry } from "../state";
 import { applyEventChoiceEffects } from "./event-choice-effects";
 import { applyActionPenaltiesFromMarkers } from "./temporary-markers";
 import { createEventPlaceholder } from "../../../src/data/event-placeholder";
+import { checkDoomEnding } from "./endings";
 
 function shuffleInPlace<T>(items: T[]): void {
   for (let index = items.length - 1; index > 0; index -= 1) {
@@ -160,18 +161,12 @@ function evaluateOutcome(state: GameState): "victory" | "defeat" | null {
     state.phase.icon = "🏆";
     state.phase.name = "Победа";
     state.phase.subtitle = "Следопыты раскрыли тайну";
+    state.ending = null;
     pushLogEntry(state, "[Финал]", "Вы собрали достаточно улик, чтобы остановить туман.", "story");
     return "victory";
   }
 
-  const doomTrack = state.worldTracks.find((track) => track.type === "doom");
-  if (doomTrack && doomTrack.max > 0 && doomTrack.value >= doomTrack.max) {
-    state.gameOutcome = "defeat";
-    state.loopStage = "finished";
-    state.phase.icon = "☠️";
-    state.phase.name = "Поражение";
-    state.phase.subtitle = "Туман поглотил Старый район";
-    pushLogEntry(state, "[Финал]", "Разрушение достигает критической отметки. Вам не уйти.", "story");
+  if (checkDoomEnding(state)) {
     return "defeat";
   }
 

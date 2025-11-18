@@ -197,11 +197,18 @@ export interface ScenarioTaskState {
   technicalFailCondition: ScenarioTaskConditionState;
 }
 
+export interface ScenarioEndingState {
+  id: string;
+  title: string;
+  text: string;
+}
+
 export interface ScenarioState {
   actId: string;
   title: string;
   intro: ScenarioIntroState;
   firstTask: ScenarioTaskState;
+  endings?: Record<string, ScenarioEndingState>;
 }
 
 export interface JournalScriptEntry {
@@ -247,6 +254,7 @@ export interface GameState {
   eventResolutionPending: boolean;
   eventResolutionSummary: EventResolutionSummary | null;
   gameOutcome: "victory" | "defeat" | null;
+  ending: ScenarioEndingState | null;
   autoScrollLog: boolean;
   soundEnabled: boolean;
 }

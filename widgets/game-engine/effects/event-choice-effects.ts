@@ -1,5 +1,6 @@
 import type { EventChoiceEffect, GameState, LogEntryVariant, StatDelta } from "../state";
 import { clamp, pushLogEntry } from "../state";
+import { checkDoomEnding, checkStatEndings } from "./endings";
 import { adjustTemporaryMarker } from "./temporary-markers";
 
 export interface LogDescriptor {
@@ -35,6 +36,8 @@ export function applyStatDeltas(state: GameState, deltas: StatDelta[] | undefine
 
     stat.value = clamp(stat.value + deltaValue, 0, stat.max);
   });
+
+  checkStatEndings(state);
 }
 
 function applySanityMitigation(state: GameState, delta: number): number {
@@ -67,6 +70,10 @@ export function adjustTrack(state: GameState, trackId: string, delta: number) {
   }
 
   track.value = clamp(track.value + delta, 0, track.max);
+
+  if (track.id === "doom") {
+    checkDoomEnding(state);
+  }
 }
 
 export function adjustActions(state: GameState, delta: number) {

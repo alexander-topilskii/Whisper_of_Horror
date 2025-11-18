@@ -54,12 +54,30 @@ function createState(): GameState {
         failCondition: "",
         technicalFailCondition: { label: "Ужас", resource: "sanity", requiredAmount: 5, currentAmount: 0 },
       },
+      endings: {
+        health_depleted: {
+          id: "health_depleted",
+          title: "Поражение тела",
+          text: "Тело не выдержало.",
+        },
+        sanity_depleted: {
+          id: "sanity_depleted",
+          title: "Потеря рассудка",
+          text: "Сознание рассыпается.",
+        },
+        doom_reached: {
+          id: "doom_reached",
+          title: "Город исчез",
+          text: "Туман поглотил всё.",
+        },
+      },
     },
     log: [],
     journalScript: { entries: [], nextIndex: 0, completed: true },
     loopStage: "player",
     eventResolutionPending: false,
     gameOutcome: null,
+    ending: null,
     autoScrollLog: true,
     soundEnabled: true,
     modifiers: [],
@@ -174,5 +192,33 @@ describe("applyEventChoiceEffects", () => {
     const sanity = state.characterStats.find((stat) => stat.id === "sanity");
     expect(sanity?.value).toBe(2);
     expect(state.log[0]).toMatchObject({ type: "[Рассудок]" });
+  });
+
+  it("triggers sanity ending when sanity reaches zero", () => {
+    const state = createState();
+    const sanity = state.characterStats.find((stat) => stat.id === "sanity");
+    if (sanity) {
+      sanity.value = 1;
+    }
+
+    applyEventChoiceEffects(state, { statDeltas: [{ statId: "sanity", delta: -2 }] });
+
+    expect(state.gameOutcome).toBe("defeat");
+    expect(state.loopStage).toBe("finished");
+    expect(state.ending?.id).toBe("sanity_depleted");
+  });
+
+  it("triggers doom ending when doom reaches the track limit", () => {
+    const state = createState();
+    const doom = state.worldTracks.find((track) => track.id === "doom");
+    if (doom) {
+      doom.max = 3;
+      doom.value = 2;
+    }
+
+    applyEventChoiceEffects(state, { doomDelta: 2 });
+
+    expect(state.gameOutcome).toBe("defeat");
+    expect(state.ending?.id).toBe("doom_reached");
   });
 });
