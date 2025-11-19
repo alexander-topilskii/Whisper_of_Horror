@@ -23,6 +23,17 @@ type CardSnapshot = {
 
 type LastCardPlay = NonNullable<GameState['lastCardPlay']>;
 
+const DEFAULT_SUCCESS_TEXT = 'Эффект карты срабатывает и приносит заявленное преимущество.';
+const DEFAULT_FAIL_TEXT = 'Провал оставляет вас без прогресса и усиливает давление.';
+
+function formatSuccessChance(value: number | undefined): string {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return '—';
+  }
+  const clamped = Math.max(0, Math.min(1, value));
+  return `${Math.round(clamped * 100)}%`;
+}
+
 function expectElement<T extends Element>(root: ParentNode, selector: string): T {
   const element = root.querySelector<T>(selector);
   if (!element) {
@@ -563,6 +574,13 @@ class InteractionView {
       description.className = 'woh-card-description';
       description.textContent = card.description;
 
+      const flavorText = card.flavor?.trim();
+      const flavor = document.createElement('p');
+      if (flavorText) {
+        flavor.className = 'woh-card-flavor';
+        flavor.textContent = flavorText;
+      }
+
       const costs = document.createElement('div');
       costs.className = 'woh-card-costs';
       card.costs.forEach((cost) => {
@@ -571,11 +589,52 @@ class InteractionView {
         costs.append(costChip);
       });
 
-      cardElement.append(title, description, costs);
+      const outcomes = this.createCardOutcomes(card);
+
+      cardElement.append(title, description);
+      if (flavorText) {
+        cardElement.append(flavor);
+      }
+      cardElement.append(outcomes, costs);
       fragment.append(cardElement);
     });
 
     this.handList.append(fragment);
+  }
+
+  private createCardOutcomes(card: GameState['hand'][number]): HTMLElement {
+    const outcomes = document.createElement('div');
+    outcomes.className = 'woh-card-outcomes';
+
+    const chance = document.createElement('div');
+    chance.className = 'woh-card-chance';
+    chance.textContent = `Шанс успеха: ${formatSuccessChance(card.chance)}`;
+    outcomes.append(chance);
+
+    outcomes.append(
+      this.createOutcomeLine('success', card.successText ?? undefined),
+      this.createOutcomeLine('fail', card.failText ?? undefined),
+    );
+
+    return outcomes;
+  }
+
+  private createOutcomeLine(variant: 'success' | 'fail', text?: string): HTMLElement {
+    const line = document.createElement('div');
+    line.className = `woh-card-outcome-line is-${variant}`;
+
+    const label = document.createElement('span');
+    label.className = 'woh-card-outcome-label';
+    label.textContent = variant === 'success' ? 'При успехе:' : 'При провале:';
+
+    const body = document.createElement('span');
+    body.className = 'woh-card-outcome-text';
+    const fallback = variant === 'success' ? DEFAULT_SUCCESS_TEXT : DEFAULT_FAIL_TEXT;
+    const trimmed = text?.trim();
+    body.textContent = trimmed?.length ? trimmed : fallback;
+
+    line.append(label, body);
+    return line;
   }
 
   private renderLastCardPlay(lastPlay: GameState['lastCardPlay']): void {
