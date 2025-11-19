@@ -504,14 +504,15 @@ const STYLES = `
 
     .woh-hand-card {
       position: relative;
-      flex: 0 0 140px;
+      flex: 0 0 170px;
+      min-height: 230px;
       background: ${colors.handCardBackground};
       border: 1px solid ${colors.handCardBorder};
       border-radius: 12px;
-      padding: 12px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
       cursor: pointer;
       transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
       scroll-snap-align: start;
@@ -565,13 +566,64 @@ const STYLES = `
 
     .woh-card-title {
       font-family: "IM Fell English", "Times New Roman", serif;
-      font-size: 0.92rem;
+      font-size: 1rem;
       letter-spacing: 0.05em;
     }
 
     .woh-card-description {
+      font-size: 0.78rem;
+      line-height: 1.35;
+      color: ${colors.cardDescription};
+    }
+
+    .woh-card-flavor {
+      margin: 0;
       font-size: 0.75rem;
-      line-height: 1.3;
+      line-height: 1.4;
+      font-style: italic;
+      color: ${colors.eventFlavor};
+    }
+
+    .woh-card-outcomes {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-top: 10px;
+      border-top: 1px solid ${colors.panelBorder};
+    }
+
+    .woh-card-chance {
+      font-size: 0.76rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: ${colors.cardCosts};
+    }
+
+    .woh-card-outcome-line {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .woh-card-outcome-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: ${colors.cardCosts};
+    }
+
+    .woh-card-outcome-line.is-success .woh-card-outcome-label {
+      color: ${colors.statHealText};
+    }
+
+    .woh-card-outcome-line.is-fail .woh-card-outcome-label {
+      color: ${colors.statDamageText};
+    }
+
+    .woh-card-outcome-text {
+      font-size: 0.74rem;
+      line-height: 1.35;
       color: ${colors.cardDescription};
     }
 
